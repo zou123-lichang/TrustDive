@@ -1,0 +1,16 @@
+case_type,clip_uid,variant,phase,contribution
+boundary_sensitive,17::160,original,takeoff,-0.059805553406476974
+boundary_sensitive,17::160,original,flight,0.5791721940040588
+boundary_sensitive,17::160,original,entry,-0.5191516280174255
+boundary_sensitive,17::160,boundary_left,takeoff,-0.0799121061960856
+boundary_sensitive,17::160,boundary_left,flight,-0.028780619303385414
+boundary_sensitive,17::160,boundary_left,entry,0.06373508771260579
+boundary_sensitive,17::160,boundary_right,takeoff,-0.0726178487141927
+boundary_sensitive,17::160,boundary_right,flight,0.3910113970438639
+boundary_sensitive,17::160,boundary_right,entry,-0.37686189015706384
+reference_sensitive,FINADivingWorldCup2021_Men10m_semifinal_r5::11,original,takeoff,-0.0718228816986084
+reference_sensitive,FINADivingWorldCup2021_Men10m_semifinal_r5::11,original,flight,0.0398411750793457
+reference_sensitive,FINADivingWorldCup2021_Men10m_semifinal_r5::11,original,entry,0.11918425559997559
+reference_sensitive,FINADivingWorldCup2021_Men10m_semifinal_r5::11,reference_replace,takeoff,-0.005407730738321939
+reference_sensitive,FINADivingWorldCup2021_Men10m_semifinal_r5::11,reference_replace,flight,0.0736251672108968
+reference_sensitive,FINADivingWorldCup2021_Men10m_semifinal_r5::11,reference_replace,entry,-0.07956329981486002

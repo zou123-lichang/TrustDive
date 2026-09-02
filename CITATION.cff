@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use TrustDive, please cite the software and the associated paper."
+title: "TrustDive: Reference-Adaptive Diving Performance Assessment with Exact Counterfactual Phase Evidence"
+type: software
+version: 1.0.0
+date-released: 2026-09-02
+repository-code: "https://github.com/zou123-lichang/TrustDive"
+license: MIT
+authors:
+  - family-names: Zou
+    given-names: Lichang
+  - family-names: Bai
+    given-names: Shusong
+    email: bai001@stu.woosuk.ac.kr
+keywords:
+  - action quality assessment
+  - diving performance
+  - counterfactual explanation
+  - reference adaptation
+  - explainable artificial intelligence

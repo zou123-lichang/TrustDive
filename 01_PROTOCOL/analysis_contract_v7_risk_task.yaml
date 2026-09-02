@@ -1,0 +1,63 @@
+material_passport: experiment-agent / implementation / 2026-08-20 / UNVERIFIED / trustdive_risk_v7
+title: TrustDive-Risk v7 risk-aware traceable diving assessment
+read_only_anchor:
+  repository_commit: 15180277d76c03b5c42d2820ff64579096ab620c
+  protected_protocol_glob: analysis_contract_v[1-6]*
+  protected_results: [00_AUDIT, 01_PROBE, 02_SCORE, 03_TRACE, 04_PANEL, V2_DISAGREEMENT, V3_TRACE_FIRST, V4_COUNTERFACTUAL, V5_APPLIED_CFPD, V6_EXACT_REVIEW]
+data:
+  samples: 3000
+  official_train: 2251
+  official_test: 749
+  fit: 1559
+  validation: 369
+  calibration: 323
+  valid_seven_judge: 1368
+  official_test_seven_judge: 325
+  invalid_judge_arrays: 3
+  event_families: 39
+  references: 5
+  alternate_references: 5
+  minimum_references: 3
+risk_task:
+  judge_quantile: 0.75
+  error_quantile: 0.75
+  review_fraction: 0.20
+  crossfit_folds: 5
+  conformal_coverage: 0.90
+  random_review_iterations: 1000
+adapter:
+  ridge_alphas: [10.0, 100.0, 1000.0]
+  lambda_error: [0.5, 1.0]
+  lambda_judge: [0.5, 1.0]
+  maximum_validation_spearman_drop: 0.01
+  residual_clip_quantiles: [0.01, 0.99]
+  development_reference_roles: [fit]
+  final_reference_roles: [fit, validation]
+attribution:
+  phases: [takeoff, flight, entry]
+  coalitions: 8
+  maximum_reconstruction_error: 1.0e-6
+  minimum_targeted_minus_random: 0.0
+  chance_top_phase_match: 0.3333333333333333
+  boundary_jitter_tokens: 1
+statistics:
+  seed: 20260820
+  cluster_bootstrap_iterations: 10000
+  model_seeds: [20260817, 20260818, 20260819]
+compute:
+  gpu_budget_hours: 2.0
+  build_phase_evidence_estimated_hours: 0.70
+  render_estimated_hours: 0.05
+publication:
+  minimum_high_risk_mae_reduction: 0.05
+  minimum_selective_mae_reduction: 0.05
+  maximum_transparent_spearman_drop: 0.01
+terminology:
+  high_risk: model-error or judge-disagreement review risk
+  phase_contribution: exact counterfactual model-attributed phase contribution
+  prohibited_claims:
+    - injury or athlete-safety risk
+    - improves real judge cognition trust or behavior
+    - first phase-aware or interpretable AQA
+    - RICA2 is the unique current SOTA
+    - a derived task is a newly collected video dataset

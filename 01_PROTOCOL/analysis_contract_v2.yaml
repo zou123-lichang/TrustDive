@@ -1,0 +1,137 @@
+material_passport:
+  origin_skill: experiment-agent
+  origin_mode: implementation
+  origin_date: '2026-08-17'
+  verification_status: UNVERIFIED
+  version_label: trustdive_disagreement_v2
+state:
+  frozen: true
+  frozen_at: '2026-08-18T07:39:50.706232+00:00'
+  contract_sha256: 195ccc48264798ee010f4b42b42c2d90c641c535d1071b3603210d7214ea8f4b
+  official_test_unlocked: true
+random:
+  master_seed: 20260817
+  model_seeds:
+  - 20260817
+  - 20260818
+  - 20260819
+compute:
+  gpu_budget_hours: 12.0
+  max_peak_vram_gb: 11.5
+  videomae_rescue_budget_hours: 3.0
+  videomae_unfreeze_epochs: 8
+  early_stopping_patience: 3
+data:
+  samples: 3000
+  official_train: 2251
+  official_test: 749
+  judge_panels:
+    '3': 1024
+    '5': 607
+    '7': 1369
+  official_test_seven_judge: 325
+  score_increment: 0.5
+  judge_min: 0.0
+  judge_max: 10.0
+  primary_disagreement_panel_size: 7
+  supplemental_disagreement_panel_size: 5
+  source_event_families: 39
+splits:
+  official_train_roles:
+    proportions:
+    - 0.7
+    - 0.15
+    - 0.15
+    labels:
+    - fit
+    - validation
+    - calibration
+  source_isolated:
+    proportions:
+    - 0.8
+    - 0.1
+    - 0.1
+    labels:
+    - source_fit
+    - source_validation
+    - source_test
+  grouping_key: event_family
+  balance_keys:
+  - action_group
+  - judge_count
+  - score_quartile
+features:
+  primary_modalities:
+  - rgb
+  optional_modalities:
+  - pose
+  - splash
+  rgb_backbone: i3d_r50_kinetics400_frozen
+  rgb_frames_per_clip: 64
+  rescue_backbone: MCG-NJU/videomae-base-finetuned-kinetics
+  rescue_frames_per_clip: 16
+  phases:
+  - takeoff
+  - flight
+  - entry
+  pose_frames_per_clip: 15
+  pose_display_gate:
+    pck_at_0_1: 0.7
+    key_angle_mae_deg: 12.0
+  splash_validation_mae_improvement_fraction: 0.01
+  max_entry_contribution_fraction: 0.5
+score:
+  execution_quality: dive_score / (3 * difficulty)
+  reference_count: 5
+  minimum_references: 3
+  exclude_same_event_family: true
+  residual_bound: 1.0
+  residual_l1_weight: 0.01
+  interval_coverage: 0.9
+model:
+  student_t_df: 4.0
+  score_loss: huber
+  judge_nll_weight: 0.2
+  disagreement_rank_weight_rescue: 0.3
+  phase_feature_dropout: 0.1
+  temporal_boundary_jitter_fraction: 0.05
+  temporal_frame_drop_fraction: 0.1
+  review_fraction: 0.2
+  large_error_quantile: 0.75
+tuning:
+  variants:
+  - none
+  - temporal
+  - temporal_visual
+  - temporal_visual_dropout
+  minimum_validation_spearman: 0.88
+  maximum_spearman_drop_from_best_baseline: 0.03
+  disagreement_rescue_threshold: 0.15
+  validation_selection: score_noninferiority_then_disagreement_then_mae
+  test_tuning_prohibited: true
+statistics:
+  bootstrap: 10000
+  permutations: 20000
+  crps_quantile_samples: 256
+  two_sided: true
+  independent_unit: clip
+publication_gates:
+  strong_psychology:
+    max_score_spearman_drop: 0.03
+    min_fusion_relative_reduction: 0.03
+    min_selective_reduction_at_80pct_coverage: 0.05
+    require_disagreement_ci_above_zero: true
+    require_fusion_ci_below_zero: true
+    require_targeted_deletion: true
+  application_psychology:
+    required_positive_human_centered_endpoints: 2
+    prohibited_clear_reverse_endpoint: true
+  stop:
+    max_score_spearman_drop: 0.05
+v1_read_only_anchors:
+  git_commits:
+  - e646d4b
+  - 03dc946
+  stage_a_stop_sha256: b271707e4e9e20eacf15da3c861d12f36c12c53ea87a885c41cff391dd16cc3e
+  stop_decision_sha256: d3641637af4c5fd39c4df05a687c7ba509311fc48f2fb322e08061554e2d622f
+  v1_contract_sha256: 01a18f0f3d2ca61afe36d6c71922fd9dbf05c64392c59632fd45f424f1863ed0

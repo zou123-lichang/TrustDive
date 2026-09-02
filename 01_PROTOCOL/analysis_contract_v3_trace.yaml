@@ -1,0 +1,96 @@
+material_passport:
+  origin_skill: experiment-agent
+  origin_mode: implementation
+  origin_date: '2026-08-18'
+  verification_status: UNVERIFIED
+  version_label: trustdive_trace_v3
+state:
+  frozen: true
+  frozen_at: '2026-08-18T09:28:12.179725+00:00'
+  contract_sha256: 95ad8a09b1bb9b612bd193f03b43af189ec305c042040194e7d4d335552c9d28
+  official_test_unlocked: true
+  selected_config_sha256: 7b3442a76691a66b66733208970b3f610ebbeac3d34226893fa33916b95a9f03
+random:
+  master_seed: 20260817
+  model_seeds:
+  - 20260817
+  - 20260818
+  - 20260819
+compute:
+  gpu_budget_hours: 4.0
+  max_peak_vram_gb: 11.5
+data:
+  samples: 3000
+  official_train: 2251
+  official_test: 749
+  official_test_seven_judge: 325
+  source_event_families: 39
+  cached_backbone: videomae_v2
+  video_reextraction_prohibited: true
+score:
+  execution_quality: dive_score / (3 * difficulty)
+  reference_count: 5
+  minimum_references: 3
+  exclude_same_event_family: true
+  teacher_checkpoint: runs/v2_disagreement/checkpoints/baseline_relative_v2.pth
+model:
+  alpha_grid:
+  - 0.0
+  - 0.25
+  - 0.5
+  - 0.75
+  residual_bounds:
+  - 0.0
+  - 0.25
+  judge_nll_weight: 0.2
+  residual_l1_weight: 0.1
+  student_t_df: 4.0
+  hidden_dimension: 96
+  maximum_epochs: 200
+  patience: 25
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  review_fraction: 0.2
+  conformal_coverage: 0.9
+pilot_gates:
+  baseline_validation_spearman: 0.7551999
+  maximum_spearman_drop: 0.03
+  minimum_validation_spearman: 0.7251999
+  minimum_median_attribution_coverage: 0.8
+  minimum_fraction_coverage_at_0_70: 0.8
+  maximum_median_absolute_residual: 0.2
+  spearman_tie_tolerance: 0.005
+stress_gates:
+  minimum_top_phase_agreement: 0.75
+  minimum_contribution_cosine: 0.9
+  maximum_median_prediction_change: 0.25
+  minimum_seed_fleiss_kappa: 0.4
+  minimum_counterfactual_correlation: 0.9
+  maximum_non_target_median_drift: 0.01
+statistics:
+  cluster_bootstrap_iterations: 10000
+  random_review_iterations: 1000
+  two_sided: true
+  independent_unit: clip
+  cluster_unit: event_family
+publication_gates:
+  maximum_test_spearman_drop: 0.03
+  minimum_targeted_deletion_match: 0.8
+  minimum_selective_error_reduction: 0.05
+  minimum_disagreement_enrichment_ratio: 1.5
+read_only_anchors:
+  repository_commit: 2bce6c7b7fd4e9ff71935e153f03bd7fe65d9540
+  v1_stop: 03_RESULTS/01_PROBE/stage_a_stop.json
+  v1_stop_decision: 03_RESULTS/01_PROBE/STOP_DECISION.md
+  v2_contract: 01_PROTOCOL/analysis_contract_v2.yaml
+  v2_decision: 03_RESULTS/V2_DISAGREEMENT/RESULTS_DECISION_V2.md
+  v2_analysis: 03_RESULTS/V2_DISAGREEMENT/04_ANALYSIS/analysis_summary_v2.json
+reporting:
+  follow_up_label: result-informed follow-up
+  phase_term: model-attributed phase contribution
+  human_value_term: review support/potential
+  prohibited_claims:
+  - improves real judge behavior
+  - equals a judge psychological deduction
+  - injury or athlete risk
+  - cross-dataset generalization

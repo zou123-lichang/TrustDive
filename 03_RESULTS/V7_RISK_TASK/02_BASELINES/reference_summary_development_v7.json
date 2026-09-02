@@ -1,0 +1,11 @@
+{
+  "all_references_legal": true,
+  "open_set_rows": 91,
+  "pool_roles": [
+    "fit"
+  ],
+  "pool_rows": 1559,
+  "reference_map_sha256": "a6f2089457ba9847a3ed7eef82fdad874f8ddd4afe6c20e6fd1c0e72638a8b0a",
+  "stage": "development",
+  "status": "PASS"
+}

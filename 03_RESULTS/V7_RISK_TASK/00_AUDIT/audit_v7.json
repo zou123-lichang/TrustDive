@@ -1,0 +1,23 @@
+{
+  "anchor": "15180277d76c03b5c42d2820ff64579096ab620c",
+  "checks": {
+    "anchor_is_ancestor": true,
+    "calibration": true,
+    "event_families": true,
+    "fit": true,
+    "invalid_judge_arrays": true,
+    "official_test": true,
+    "official_train": true,
+    "protected_v1_v6_unchanged": true,
+    "samples": true,
+    "test_seven_judge": true,
+    "v6_latent_cache_pass": true,
+    "valid_seven_judge": true,
+    "validation": true
+  },
+  "current_git_head": "f1fa11ee4f4706746cfb677def84946bf95b8006",
+  "material_passport": "experiment-agent / audit / 2026-08-20 / VERIFIED_DATA / trustdive_risk_v7",
+  "protected_changes": [],
+  "status": "PASS",
+  "v6_latent_summary_sha256": "666bd77bb5eac054d5d752fe5d3701372e52d2220b3e15b9516ba25570f1d4ff"
+}

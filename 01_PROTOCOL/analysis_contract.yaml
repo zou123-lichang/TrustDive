@@ -1,0 +1,88 @@
+material_passport:
+  origin_skill: experiment-agent
+  origin_mode: implementation
+  origin_date: "2026-08-15"
+  verification_status: UNVERIFIED
+  version_label: trustdive_contract_v1
+
+state:
+  frozen: false
+  frozen_at: null
+  contract_sha256: null
+
+paths:
+  fine_diving: "data/FineDiving"
+  pose_dive: "data/PoseDive"
+  splash: "data/splash_data"
+
+random:
+  master_seed: 20260815
+  model_seeds: [20260815, 20260816, 20260817]
+
+compute:
+  gpu_budget_hours: 24.0
+  probe_budget_hours: 1.0
+  baseline_cumulative_budget_hours: 6.0
+  pilot_additional_budget_hours: 3.0
+  max_peak_vram_gb: 11.5
+  max_estimated_feature_hours: 6.0
+
+data_assertions:
+  samples: 3000
+  official_train: 2251
+  official_test: 749
+  action_types: 52
+  difficulty_types: 23
+  judge_panels: {"3": 1024, "5": 607, "7": 1369}
+  test_seven_judge: 325
+  train_sources: 135
+  test_sources: 131
+  overlapping_sources: 131
+  pose_images: 12722
+  splash_files: 3000
+
+features:
+  rgb_backbone: i3d_r50_kinetics400_frozen
+  rgb_frames_per_clip: 64
+  pose_backbone: hrnet_w18_small_v2
+  pose_frames_per_clip: 15
+  pose_joints: 16
+  phases: [takeoff, flight, entry]
+  splash_primary: false
+  splash_gate:
+    pilot_clips: 30
+    min_dice: 0.50
+    min_area_spearman: 0.70
+
+score:
+  execution_quality: "dive_score / (3 * difficulty)"
+  reference_count: 5
+  minimum_references: 3
+  exclude_same_event_family: true
+  residual_bound: 1.0
+  interval_coverage: 0.90
+  calibration_fraction: 0.15
+
+gates:
+  probe:
+    pck_at_0_1: 0.80
+    key_angle_mae_deg: 10.0
+  baseline:
+    min_spearman: 0.90
+    max_seed_sd: 0.015
+  pilot:
+    min_delta_spearman: -0.02
+    max_relative_l2_degradation_fraction: 0.05
+    min_median_trace_coverage: 0.70
+    min_nonentry_rank_stability_without_splash: 0.80
+  panel:
+    min_relative_error_reduction: 0.05
+    min_selective_error_reduction_at_80pct_coverage: 0.10
+    acceptable_90pct_interval_coverage: [0.87, 0.93]
+
+statistics:
+  permutations: 100000
+  bootstrap: 50000
+  two_sided: true
+  secondary_correction: holm
+  independent_unit: clip

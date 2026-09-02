@@ -1,0 +1,28 @@
+diff --git a/libs/datasets/finediving.py b/libs/datasets/finediving.py
+--- a/libs/datasets/finediving.py
++++ b/libs/datasets/finediving.py
+@@
+-        start_frame = int(image_list[0].split("/")[-1][:-4])
+-        end_frame = int(image_list[-1].split("/")[-1][:-4])
++        start_frame = int(os.path.splitext(os.path.basename(image_list[0]))[0])
++        end_frame = int(os.path.splitext(os.path.basename(image_list[-1]))[0])
+diff --git a/train.py b/train.py
+--- a/train.py
++++ b/train.py
+@@
+             if rl2_improved:
+                 save_checkpoint(
+                     save_states,
+@@
+                 with open(os.path.join(ckpt_folder, "rl2_best_outputs.pkl"), "wb") as f:
+                     pickle.dump(metric_dict, f)
++
++            save_checkpoint(
++                save_states,
++                False,
++                file_folder=ckpt_folder,
++                file_name='last.pth.tar'
++            )
+ 
+             del save_states
+

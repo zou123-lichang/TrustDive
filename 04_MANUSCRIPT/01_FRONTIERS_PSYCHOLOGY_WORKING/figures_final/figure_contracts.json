@@ -1,0 +1,55 @@
+{
+  "Figure1": {
+    "archetype": "schematic-led composite",
+    "conclusion": "TrustDive converts a deterministic global score into reference-adapted scoring and exact phase evidence.",
+    "size_mm": [
+      180,
+      105
+    ]
+  },
+  "Figure2": {
+    "archetype": "quantitative grid",
+    "conclusion": "Reference adaptation reduces score error overall and in high-disagreement performances.",
+    "size_mm": [
+      180,
+      128
+    ]
+  },
+  "Figure3": {
+    "archetype": "image plate + quant",
+    "conclusion": "Enlarged real query phases and matched training references make the score decomposition inspectable in a typical and a high-disagreement performance.",
+    "size_mm": [
+      180,
+      140
+    ]
+  },
+  "Figure4": {
+    "archetype": "asymmetric mixed-modality figure",
+    "conclusion": "Exact phase attributions agree with direct interventions better than random phase selection.",
+    "size_mm": [
+      180,
+      150
+    ]
+  },
+  "Figure5": {
+    "archetype": "asymmetric mixed-modality figure",
+    "conclusion": "Phase evidence is informative but only moderately stable to boundary and reference changes.",
+    "size_mm": [
+      180,
+      135
+    ]
+  },
+  "backend": "Python/matplotlib exclusively",
+  "exports": [
+    "SVG",
+    "PDF",
+    "600 dpi TIFF",
+    "300 dpi PNG"
+  ],
+  "image_integrity": "Uniform letterboxing only; no local retouching or unvalidated pose overlays.",
+  "review_risks": [
+    "model attribution is not judge cognition",
+    "high disagreement is not abnormal judging",
+    "feature-level coalitions are not generated videos"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "ablation_sha256": "68258dc637819d9037d022cd71a585ba04bbb9c1a36850d7969342e0b6fa0330",
+  "conformal_half_width": 6.32286701202392,
+  "crossfit_sha256": "6d77df5800222041753b7d0121c988115ffecd924864a35ec1af5b2a3fc9b91b",
+  "final_artifact_sha256": "d36155e9ae643a3d89b6f514278c82c8b47072478ef4c6c2217ccbc259ee08f7",
+  "official_test_used_for_model_selection": false,
+  "open_set_test_rows": 14,
+  "prediction_sha256": "8bfd401e4edf6a8d36f73e1d687c1fb702517cc33e5d51be99cb68839cdae043",
+  "selected_config": {
+    "alpha": 100.0,
+    "eligible": true,
+    "high_judge_mae": 3.3236735366396024,
+    "high_judge_n": 67,
+    "kind": "risk_ridge",
+    "lambda_error": 0.5,
+    "lambda_judge": 1.0,
+    "mae": 3.3273013809852308,
+    "name": "risk_ridge_a100_le0.5_lj1",
+    "relative_l2": 0.29570681344439254,
+    "relative_l2_definition": "100 * mean(((prediction-target)/(max(target)-min(target)))^2)",
+    "relative_l2_variance_ratio_internal": 0.08100353396181291,
+    "rmse": 4.5025754850802935,
+    "spearman": 0.9591652131124433,
+    "spearman_drop_from_teacher": -0.001361474130829543
+  },
+  "status": "PASS",
+  "test_rows": 749
+}

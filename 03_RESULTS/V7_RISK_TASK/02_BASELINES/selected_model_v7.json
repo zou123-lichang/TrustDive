@@ -1,0 +1,49 @@
+{
+  "artifact_sha256": "ee0f7a1ce0d362eae613d625d078c5c96d539c88a25b881f3ac3e011bdb1d4d8",
+  "official_test_used_for_selection": false,
+  "plain_ridge": {
+    "alpha": 10.0,
+    "eligible": true,
+    "high_judge_mae": 3.3714385461840592,
+    "high_judge_n": 67,
+    "kind": "plain_ridge",
+    "lambda_error": 0.0,
+    "lambda_judge": 0.0,
+    "mae": 3.309456541661808,
+    "name": "plain_ridge_alpha_10",
+    "relative_l2": 0.29276303536240017,
+    "relative_l2_definition": "100 * mean(((prediction-target)/(max(target)-min(target)))^2)",
+    "relative_l2_variance_ratio_internal": 0.08019713919172569,
+    "rmse": 4.480107731248164,
+    "spearman": 0.9592399747620836,
+    "spearman_drop_from_teacher": -0.0014362357804698078
+  },
+  "selected": {
+    "alpha": 100.0,
+    "eligible": true,
+    "high_judge_mae": 3.3236735366396024,
+    "high_judge_n": 67,
+    "kind": "risk_ridge",
+    "lambda_error": 0.5,
+    "lambda_judge": 1.0,
+    "mae": 3.3273013809852308,
+    "name": "risk_ridge_a100_le0.5_lj1",
+    "relative_l2": 0.29570681344439254,
+    "relative_l2_definition": "100 * mean(((prediction-target)/(max(target)-min(target)))^2)",
+    "relative_l2_variance_ratio_internal": 0.08100353396181291,
+    "rmse": 4.5025754850802935,
+    "spearman": 0.9591652131124433,
+    "spearman_drop_from_teacher": -0.001361474130829543
+  },
+  "selection_rule": "Spearman drop <= 0.01, then minimum high-judge-risk MAE",
+  "status": "PASS",
+  "teacher_validation_metrics": {
+    "mae": 3.745530310594615,
+    "relative_l2": 0.379399827861103,
+    "relative_l2_definition": "100 * mean(((prediction-target)/(max(target)-min(target)))^2)",
+    "relative_l2_variance_ratio_internal": 0.10392972175134578,
+    "rmse": 5.1001024654836735,
+    "spearman": 0.9578037389816138
+  },
+  "trials_sha256": "5bd825342e53bc28679ecf8fd981f32dc91e2822cbcb7143d09a96e73047ce27"
+}

@@ -1,0 +1,9 @@
+{
+  "python": "3.10.20",
+  "torch": "2.11.0+cu130",
+  "torchvision": "0.26.0+cu130",
+  "cuda": "13.0",
+  "gpu": "NVIDIA GeForce RTX 5070",
+  "timm": "1.0.28",
+  "pytorchvideo": "0.1.5"
+}

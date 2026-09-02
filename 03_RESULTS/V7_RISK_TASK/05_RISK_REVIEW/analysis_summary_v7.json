@@ -1,0 +1,145 @@
+{
+  "claim_boundary": "RICA2 high-disagreement failure wording is supported, but risk weighting did not beat the plain latent-reference Ridge on high-risk MAE; attribute score gains to latent reference adaptation.",
+  "high_judge_risk_scoring": {
+    "high_mae_delta_cluster_ci": [
+      -1.4891570906416542,
+      -0.3609426274415006
+    ],
+    "high_mae_reduction_fraction": 0.1117014345748985,
+    "high_risk_rows": 94,
+    "plain_ridge_high_mae": 7.485534175152472,
+    "plain_ridge_low_mae": 5.130244586731254,
+    "rica2_error_is_higher_on_high_disagreement": true,
+    "risk_directed_gain": 0.2709863071507561,
+    "risk_directed_gain_cluster_ci": [
+      -0.3180661532288322,
+      0.8165630298415891
+    ],
+    "risk_directed_gate": true,
+    "risk_weighted_minus_plain_high_mae": 0.009494785591959598,
+    "risk_weighted_minus_plain_high_mae_cluster_ci": [
+      -0.0697967823854485,
+      0.07645825732852614
+    ],
+    "risk_weighting_improves_high_risk_mae": false,
+    "teacher_high_mae": 8.437511049179319,
+    "teacher_low_mae": 5.844588339793216,
+    "teacher_risk_gap": 2.5929227093861034,
+    "test_panel_rows": 325,
+    "trustdive_high_mae": 7.495028960744432,
+    "trustdive_low_mae": 5.173092558509085,
+    "trustdive_minus_teacher_high_mae": -0.942482088434887,
+    "trustdive_risk_gap": 2.3219364022353473
+  },
+  "material_passport": "experiment-agent / analysis / 2026-08-20 / ANALYZED / trustdive_risk_v7",
+  "panel_review_strategies": {
+    "disagreement_risk": {
+      "high_judge_enrichment": 1.5957446808510638,
+      "high_judge_recall_at_budget": 0.3191489361702128
+    },
+    "error_risk": {
+      "high_judge_enrichment": 1.7553191489361701,
+      "high_judge_recall_at_budget": 0.35106382978723405
+    },
+    "rica2_uncertainty": {
+      "high_judge_enrichment": 0.7978723404255319,
+      "high_judge_recall_at_budget": 0.1595744680851064
+    },
+    "trustdive_combined": {
+      "high_judge_enrichment": 1.9148936170212767,
+      "high_judge_recall_at_budget": 0.3829787234042553
+    }
+  },
+  "phase_evidence": {
+    "targeted_minus_random_cluster_ci": [
+      0.05373096466064453,
+      0.0833883285522461
+    ],
+    "top_phase_match_cluster_ci": [
+      0.8830468728157239,
+      0.928251285216238
+    ],
+    "trace_gate": true
+  },
+  "publication_decision": "FRONTIERS_PSYCHOLOGY_APPLICATION",
+  "review_priority_sha256": "392bd612ee17cf802c637c97e0da2f0b1bed78410eca4b24d00f6de9ba032cc1",
+  "review_strategies": {
+    "disagreement_risk": {
+      "accepted_mae": 5.622369267978955,
+      "accepted_mae_reduction": 0.017858708923162846,
+      "aurc": 5.324572365433714,
+      "high_error_enrichment": 1.0993280282935454,
+      "high_error_recall_at_budget": 0.22015915119363394,
+      "review_fraction": 0.20026702269692923
+    },
+    "error_risk": {
+      "accepted_mae": 5.283724207848882,
+      "accepted_mae_reduction": 0.07701478365258027,
+      "aurc": 5.275185330319785,
+      "high_error_enrichment": 1.324491600353669,
+      "high_error_recall_at_budget": 0.26525198938992045,
+      "review_fraction": 0.20026702269692923
+    },
+    "rica2_uncertainty": {
+      "accepted_mae": 5.851583479770858,
+      "accepted_mae_reduction": -0.022181482528613166,
+      "aurc": 5.759544673242561,
+      "high_error_enrichment": 0.9933687002652519,
+      "high_error_recall_at_budget": 0.1989389920424403,
+      "review_fraction": 0.20026702269692923
+    },
+    "trustdive_combined": {
+      "accepted_mae": 5.571862102855053,
+      "accepted_mae_reduction": 0.02668153254058989,
+      "aurc": 5.091601363544466,
+      "high_error_enrichment": 1.152307692307692,
+      "high_error_recall_at_budget": 0.23076923076923078,
+      "review_fraction": 0.20026702269692923
+    }
+  },
+  "risk_detection": {
+    "error": {
+      "auprc": 0.5849758901286388,
+      "auroc": 0.583073072644819,
+      "brier": 0.24531912994835364,
+      "spearman_with_absolute_error": 0.17094791751531752
+    },
+    "judge_disagreement": {
+      "auprc": 0.42797156651215895,
+      "auroc": 0.6288799852629641,
+      "brier": 0.24108115763843496,
+      "spearman_with_judge_sd": 0.16318501735934687
+    }
+  },
+  "score": {
+    "score_enhanced": true,
+    "spearman_drop": -0.0064610565469156445,
+    "teacher": {
+      "mae": 6.167331704233931,
+      "relative_l2": 0.7040323103932917,
+      "relative_l2_definition": "100 * mean(((prediction-target)/(max(target)-min(target)))^2)",
+      "relative_l2_variance_ratio_internal": 0.3416837819520756,
+      "rmse": 8.759852511662642,
+      "spearman": 0.8277870574294904
+    },
+    "trustdive": {
+      "mae": 5.724603291869024,
+      "relative_l2": 0.6422293843300674,
+      "relative_l2_definition": "100 * mean(((prediction-target)/(max(target)-min(target)))^2)",
+      "relative_l2_variance_ratio_internal": 0.3116893382294709,
+      "rmse": 8.366534086700279,
+      "spearman": 0.8342481139764061
+    }
+  },
+  "selective_review": {
+    "accepted_mae_reduction": 0.02668153254058989,
+    "better_than_random_probability": 0.923,
+    "cluster_ci": [
+      -0.0015089948349252145,
+      0.053403221778032216
+    ],
+    "risk_better_than_rica2_uncertainty": true,
+    "selective_gate": false
+  },
+  "status": "ANALYZED"
+}

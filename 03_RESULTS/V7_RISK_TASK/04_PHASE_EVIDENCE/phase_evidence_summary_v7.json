@@ -1,0 +1,21 @@
+{
+  "boundary_cosine_median_test": 0.7883926630020142,
+  "boundary_top_match_test": 0.6421768665313721,
+  "chance_match": 0.3333333333333333,
+  "closed_set_rows": 2942,
+  "evidence_sha256": "9bb7d3dab55ff5c5b9092f424b3127bc566d716fdea2ee66a5d38c2a92e81068",
+  "maximum_reconstruction_error": 2.384185791015625e-07,
+  "maximum_scorer_alignment_error": 4.76837158203125e-07,
+  "perturbation_is_supplementary_not_a_stop_gate": true,
+  "reference_change_cosine_median_test": 0.8629091382026672,
+  "rows": 3000,
+  "status": "PASS",
+  "targeted_minus_random_median_test": 0.06716251373291016,
+  "test_closed_set_rows": 735,
+  "top_phase_intervention_match_test": 0.9061224489795918,
+  "top_phase_share_test": {
+    "entry": 0.6952380952380952,
+    "flight": 0.1727891156462585,
+    "takeoff": 0.13197278911564625
+  }
+}

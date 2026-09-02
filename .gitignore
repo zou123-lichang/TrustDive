@@ -1,0 +1,43 @@
+# Local data and feature caches
+data/
+feature_store/
+.cache/
+tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Environments and credentials
+.env
+.venv/
+venv/
+credentials*
+secrets*
+
+# Large training outputs
+*.pth
+*.ckpt
+*.onnx
+runs/**/tensorboard/
+runs/**/teacher/
+
+# Local manuscript build files
+04_MANUSCRIPT/**/*.aux
+04_MANUSCRIPT/**/*.bbl
+04_MANUSCRIPT/**/*.blg
+04_MANUSCRIPT/**/*.fdb_latexmk
+04_MANUSCRIPT/**/*.fls
+04_MANUSCRIPT/**/*.log
+04_MANUSCRIPT/**/*.out
+04_MANUSCRIPT/**/*.synctex.gz
+04_MANUSCRIPT/**/*.pdf
+04_MANUSCRIPT/**/*.tiff
+04_MANUSCRIPT/**/figures_final/figure_manifest.json
+
+# Operating-system files
+.DS_Store
+Thumbs.db

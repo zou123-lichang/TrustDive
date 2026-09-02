@@ -1,0 +1,12 @@
+{
+  "all_references_legal": true,
+  "open_set_rows": 58,
+  "pool_roles": [
+    "fit",
+    "validation"
+  ],
+  "pool_rows": 1928,
+  "reference_map_sha256": "a21f38c988fa645c02302fc09b3da4333c5382e558bfaaf7b47fe801674cd1d2",
+  "stage": "final",
+  "status": "PASS"
+}

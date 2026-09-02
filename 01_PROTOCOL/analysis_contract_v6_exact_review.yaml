@@ -1,0 +1,102 @@
+material_passport: experiment-agent / implementation / 2026-08-19 / UNVERIFIED / trustdive_exact_review_v6
+title: TrustDive-ECR v6 exact counterfactual review
+state:
+  frozen: false
+  frozen_at: null
+  official_test_unlocked: false
+  selected_adapter_sha256: null
+  pilot_attribution_sha256: null
+  contract_sha256: null
+read_only_anchors:
+  repository_commit: 76d531f0d66c903defb53ac595e601454bcd6657
+  v1_stop: 03_RESULTS/01_PROBE/STOP_DECISION.md
+  v2_analysis: 03_RESULTS/V2_DISAGREEMENT/04_ANALYSIS/analysis_summary_v2.json
+  v3_analysis: 03_RESULTS/V3_TRACE_FIRST/05_ANALYSIS/analysis_summary_v3.json
+  v4_decision: 03_RESULTS/V4_COUNTERFACTUAL/RESULTS_DECISION_V4.md
+  v5_contract: 01_PROTOCOL/analysis_contract_v5_cfpd_plus.yaml
+  v5_decision: 03_RESULTS/V5_APPLIED_CFPD/RESULTS_DECISION_V5.md
+  v5_teacher_export: 03_RESULTS/V5_APPLIED_CFPD/01_REFERENCES/teacher_export_v5.json
+  v5_counterfactual_gate: 03_RESULTS/V5_APPLIED_CFPD/03_COUNTERFACTUAL/counterfactual_summary_v5.json
+  v5_pilot_stop: 03_RESULTS/V5_APPLIED_CFPD/04_PILOT/stop_decision_v5.json
+data:
+  samples: 3000
+  official_train: 2251
+  official_test: 749
+  fit: 1559
+  validation: 369
+  calibration: 323
+  official_test_seven_judge: 325
+  source_event_families: 39
+  reference_count: 5
+  alternate_reference_count: 5
+  minimum_valid_references: 3
+teacher:
+  name: RICA2-deterministic-v4-frozen
+  checkpoint_sha256: 8162751a4d23e341b1dc1436af0a193eb67e2cb1944cf8ec84b4bd612248327f
+  measured_test_spearman: 0.8277870574
+  execution_quality_scale_divisor: 3.0
+  global_latent_dimensions: 256
+  semantic_latent_shape: [29, 512]
+  feature_shape: [9, 1024]
+  inference_dropout_probability: 0.0
+adapter:
+  development_reference_roles: [fit]
+  final_reference_roles: [fit, validation]
+  ridge_alphas: [10.0, 100.0, 1000.0]
+  mlp_hidden_dimensions: [64, 128]
+  mlp_learning_rates: [0.0003, 0.001]
+  residual_limits: [0.25, 0.50]
+  ranking_weight: 0.05
+  residual_l2_weight: 0.001
+  batch_size: 128
+  maximum_epochs: 120
+  patience: 15
+  validation_maximum_spearman_drop: 0.005
+  validation_minimum_mae_improvement: 0.05
+  simple_model_tie_tolerance: 0.002
+attribution:
+  phases: [takeoff, flight, entry]
+  coalitions: 8
+  maximum_reconstruction_error: 1.0e-6
+  real_distribution_quantile: 0.99
+  maximum_hybrid_ood_fraction: 0.10
+  minimum_targeted_minus_random: 0.0
+  minimum_top_phase_share: 0.05
+  maximum_entry_top_share: 0.85
+  minimum_contribution_cosine: 0.90
+  minimum_top_phase_agreement: 0.75
+  boundary_jitter_tokens: 1
+  token_dropout_fraction: 0.10
+risk:
+  crossfit_folds: 5
+  conformal_coverage: 0.90
+  review_fraction: 0.20
+  high_error_quantile: 0.75
+  high_disagreement_quantile: 0.75
+statistics:
+  cluster_bootstrap_iterations: 10000
+  random_review_iterations: 1000
+  seed: 20260819
+  model_seeds: [20260817, 20260818, 20260819]
+compute:
+  gpu_budget_hours: 2.0
+  latent_extraction_estimated_hours: 0.25
+  adapter_optimization_estimated_hours: 0.35
+  pilot_attribution_estimated_hours: 0.35
+  final_evaluation_estimated_hours: 0.40
+  final_attribution_estimated_hours: 0.40
+  reporting_estimated_hours: 0.05
+publication_gates:
+  maximum_test_spearman_drop: 0.005
+  minimum_test_mae_improvement: 0.05
+  minimum_review_error_reduction: 0.05
+  minimum_disagreement_enrichment: 1.50
+terminology:
+  phase_contribution: exact counterfactual model-attributed phase contribution
+  review_priority: model-error or judge-disagreement review priority
+  prohibited_claims:
+    - first procedure-aware or interpretable diving assessment
+    - equals a judge's true mental deduction
+    - improves real judge cognition, trust, or behavior
+    - injury or athlete safety risk
+    - end-to-end cross-dataset generalization

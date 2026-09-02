@@ -1,0 +1,98 @@
+material_passport: experiment-agent / implementation / 2026-08-18 / UNVERIFIED / trustdive_cfpd_plus_v5
+title: TrustDive-CFPD+ v5 applied counterfactual phase distillation
+state:
+  frozen: false
+  frozen_at: null
+  official_test_unlocked: false
+  selected_baseline_sha256: null
+  selected_cfpd_sha256: null
+  contract_sha256: null
+read_only_anchors:
+  repository_commit: f3fecc2b8c28d2dda1a5a23d42345342b832b132
+  v1_stop: 03_RESULTS/01_PROBE/STOP_DECISION.md
+  v2_analysis: 03_RESULTS/V2_DISAGREEMENT/04_ANALYSIS/analysis_summary_v2.json
+  v3_analysis: 03_RESULTS/V3_TRACE_FIRST/05_ANALYSIS/analysis_summary_v3.json
+  v4_contract: 01_PROTOCOL/analysis_contract_v4_counterfactual.yaml
+  v4_teacher_gate: 03_RESULTS/V4_COUNTERFACTUAL/01_TEACHER/teacher_gate_v4.json
+  v4_decision: 03_RESULTS/V4_COUNTERFACTUAL/RESULTS_DECISION_V4.md
+data:
+  samples: 3000
+  official_train: 2251
+  official_test: 749
+  official_test_seven_judge: 325
+  source_event_families: 39
+  reference_role: fit
+  reference_count: 5
+  minimum_valid_references: 3
+teacher:
+  name: RICA2-deterministic-v4-frozen
+  checkpoint_sha256: 8162751a4d23e341b1dc1436af0a193eb67e2cb1944cf8ec84b4bd612248327f
+  measured_test_spearman: 0.8241038710445733
+  measured_test_relative_l2: 0.6957064295657971
+  feature_shape: [9, 1024]
+  feature_extractor_frozen: true
+counterfactual:
+  phases: [takeoff, flight, entry]
+  coalitions: 8
+  maximum_efficiency_error: 1.0e-6
+  real_distribution_quantile: 0.99
+  reliability_floor: 0.10
+  reliability_reference_mad_percentile_clip: 0.99
+  reliability_ood_percentile_clip: 0.99
+model:
+  feature_normalization: fit_only_phase_zscore
+  shared_layer_normalization: true
+  hidden_dimensions: [128, 256]
+  learning_rates: [0.0003, 0.001]
+  ranking_weights: [0.05, 0.10]
+  teacher_loss_weight: 0.25
+  phase_loss_weights: [0.25, 0.50, 1.0]
+  consistency_weights: [0.05, 0.10]
+  dropout: 0.10
+  weight_decay: 0.0001
+  maximum_epochs: 180
+  patience: 18
+  batch_size: 128
+  pilot_seed: 20260817
+  final_seeds: [20260817, 20260818, 20260819]
+  minimum_validation_trace_spearman: 0.70
+  rescue_validation_spearman: 0.82
+  augmentation_ladder: [none, balanced, boundary, boundary_token, boundary_token_noise]
+  boundary_jitter_tokens: 1
+  token_dropout_fraction: 0.10
+  feature_noise_fraction: 0.02
+risk:
+  conformal_coverage: 0.90
+  review_fraction: 0.20
+  high_error_quantile: 0.75
+  high_disagreement_quantile: 0.75
+statistics:
+  cluster_bootstrap_iterations: 10000
+  random_review_iterations: 1000
+  seed: 20260818
+compute:
+  gpu_budget_hours: 6.0
+  teacher_export_estimated_hours: 0.50
+  baseline_estimated_hours: 1.50
+  counterfactual_estimated_hours: 1.00
+  pilot_estimated_hours: 1.50
+  final_estimated_hours: 1.00
+  stress_estimated_hours: 0.25
+publication_gates:
+  target_test_spearman: 0.84
+  maximum_drop_from_adapted_baseline: 0.01
+  application_maximum_drop_from_strong_baseline: 0.02
+  minimum_phase_teacher_spearman: 0.75
+  minimum_top_phase_match: 0.75
+  minimum_contribution_cosine: 0.90
+  minimum_review_error_reduction: 0.05
+  minimum_disagreement_enrichment: 1.50
+terminology:
+  phase_contribution: reliability-weighted counterfactually grounded model-attributed phase contribution
+  review_priority: model-error or judge-disagreement review priority
+  prohibited_claims:
+    - first procedure-aware diving assessment
+    - equals a judge's true mental deduction
+    - improves real judge cognition or behavior
+    - injury or athlete safety risk
+    - cross-dataset generalization

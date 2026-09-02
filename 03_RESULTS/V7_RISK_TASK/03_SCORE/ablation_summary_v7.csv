@@ -1,0 +1,6 @@
+model,spearman,mae,rmse,relative_l2_variance_ratio_internal,relative_l2,relative_l2_definition
+RICA2 deterministic,0.8277870574294904,6.167331704233931,8.759852511662642,0.3416837819520756,0.7040323103932917,100 * mean(((prediction-target)/(max(target)-min(target)))^2)
+global linear calibration,0.8310151294075522,5.8212472461349005,8.467529639973897,0.3192597934841352,0.6578281495779245,100 * mean(((prediction-target)/(max(target)-min(target)))^2)
+same-action reference residual,0.8314018674053574,5.853345592814549,8.440444990182975,0.31722066031395757,0.65362655818603,100 * mean(((prediction-target)/(max(target)-min(target)))^2)
+plain latent reference Ridge,0.8352843421754661,5.690289749744159,8.336372293338929,0.3094460763077284,0.63760718990059,100 * mean(((prediction-target)/(max(target)-min(target)))^2)
+TrustDive-Risk,0.8342481139764061,5.724603291869024,8.366534086700279,0.3116893382294709,0.6422293843300674,100 * mean(((prediction-target)/(max(target)-min(target)))^2)

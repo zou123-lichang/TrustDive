@@ -1,0 +1,17 @@
+{
+  "calibration_proxy_rows": 323,
+  "error_threshold_from_fit_oof_score": 4.099385118484491,
+  "fit_high_error_rows": 390,
+  "fit_high_judge_rows": 189,
+  "fit_oof_rows": 1559,
+  "judge_sd_threshold_from_fit": 0.3933978962347216,
+  "manifest_sha256": "b6a5afd65ad0f9efc1ec58a2b66788022e94db6356feea58fd9bd9235a11d8c3",
+  "material_passport": "experiment-agent / etl / 2026-08-20 / VERIFIED_DATA / trustdive_risk_v7",
+  "rows": 3000,
+  "status": "PASS",
+  "test_labels_used_for_thresholds": false,
+  "threshold_sha256": "47614b81a09bab40459dfe9ee3cc106d4ebc4d7a7b58d2fa829af5a07891a742",
+  "threshold_state": "FROZEN_TRAINING_THRESHOLDS",
+  "valid_seven_judge": 1368,
+  "validation_proxy_rows": 369
+}

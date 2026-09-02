@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "closed_set_735": true,
+    "hash::analysis_summary_v7.json": true,
+    "hash::manifest.parquet": true,
+    "hash::phase_evidence_v7.parquet": true,
+    "hash::predictions_v7.parquet": true,
+    "hash::review_priority_v7.parquet": true,
+    "high_disagreement_94": true,
+    "official_test_749": true,
+    "open_set_14": true,
+    "phase_cache_alignment": true,
+    "rows_total_3000": true,
+    "seven_judge_test_325": true
+  },
+  "status": "PASS"
+}

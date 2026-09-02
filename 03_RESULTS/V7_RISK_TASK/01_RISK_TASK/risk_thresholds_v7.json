@@ -1,0 +1,10 @@
+{
+  "calibration_proxy_rows": 323,
+  "error_threshold_from_fit_oof_score": 4.099385118484491,
+  "fit_oof_rows": 1559,
+  "judge_sd_threshold_from_fit": 0.3933978962347216,
+  "manifest_sha256": "b6a5afd65ad0f9efc1ec58a2b66788022e94db6356feea58fd9bd9235a11d8c3",
+  "test_labels_used_for_thresholds": false,
+  "threshold_state": "FROZEN_TRAINING_THRESHOLDS",
+  "validation_proxy_rows": 369
+}
