@@ -14,7 +14,7 @@ videos are not included in this repository.
 
 On the 749-video FineDiving test split, the prespecified TrustDive model reduced
 MAE from 6.17 to 5.72 points and changed Spearman's rho from 0.8278 to 0.8342.
-A post-review component audit showed that most of the score improvement came
+An additional post-freeze component audit showed that most of the score improvement came
 from latent calibration; reference statistics added only a small ranking and
 RMSE benefit beyond the latent-only model. For the 735 videos with enough legal
 references, the three phase contributions reconstructed the deployed
@@ -38,7 +38,7 @@ videos.
 
 The versioned modules preserve the sequence of analyses that led to the paper.
 The manuscript's primary results come from the frozen v7 artifacts; the
-post-review audit supplements them without replacing any v7 prediction.
+post-freeze diagnostic audit supplements them without replacing any v7 prediction.
 
 ## Installation
 
@@ -94,7 +94,7 @@ python -m pytest \
   02_CODE/tests/test_manuscript_figures.py -q
 ```
 
-The bounded post-review analyses can be regenerated with the command below once
+The bounded post-freeze diagnostic analyses can be regenerated with the command below once
 the frozen RICA² latent and temporal-sequence caches have been produced by the
 earlier pipeline stages:
 
