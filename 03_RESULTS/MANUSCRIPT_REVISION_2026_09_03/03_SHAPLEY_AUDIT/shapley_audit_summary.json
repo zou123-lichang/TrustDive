@@ -1,0 +1,37 @@
+{
+  "deterministic_intervention_comparisons": {
+    "targeted_minus_mean_nonselected": {
+      "cluster_ci": [
+        0.13083815574645996,
+        0.16332530975341797
+      ],
+      "median": 0.1466512680053711
+    },
+    "targeted_minus_strongest_nonselected": {
+      "cluster_ci": [
+        0.09805095791816712,
+        0.12933063507080078
+      ],
+      "median": 0.11584997177124023
+    }
+  },
+  "fraction_loo_error_above_0_05": 0.41768707482993195,
+  "median_absolute_pairwise_interaction": {
+    "flight_entry": 0.027035236358642578,
+    "takeoff_entry": 0.007247209548950195,
+    "takeoff_flight": 0.01504373550415039
+  },
+  "median_absolute_third_order_interaction": 0.006277561187744141,
+  "median_loo_reconstruction_error": 0.03949451446533203,
+  "mismatch_n": 69,
+  "output_sha256": "5b448732c81800c5e417ec6cb2480adf0bef5813c9bb88831c97e81a8f471a76",
+  "sign_consistency_by_phase": {
+    "entry": 0.9659863945578231,
+    "flight": 0.9170068027210885,
+    "takeoff": 0.9428571428571428
+  },
+  "sign_consistency_overall": 0.9419501133786848,
+  "status": "COMPLETE",
+  "test_closed_set_n": 735,
+  "top_phase_match": 0.9061224489795918
+}

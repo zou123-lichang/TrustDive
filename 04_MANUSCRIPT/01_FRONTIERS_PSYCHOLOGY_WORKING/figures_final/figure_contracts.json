@@ -1,7 +1,7 @@
 {
   "Figure1": {
     "archetype": "schematic-led composite",
-    "conclusion": "TrustDive converts a deterministic global score into reference-adapted scoring and exact phase evidence.",
+    "conclusion": "TrustDive combines bounded latent calibration with exact reference-conditioned phase evidence.",
     "size_mm": [
       180,
       105
@@ -9,7 +9,7 @@
   },
   "Figure2": {
     "archetype": "quantitative grid",
-    "conclusion": "Reference adaptation reduces score error overall and in high-disagreement performances.",
+    "conclusion": "Latent calibration reduces score error overall and in high-disagreement performances.",
     "size_mm": [
       180,
       128
@@ -25,7 +25,7 @@
   },
   "Figure4": {
     "archetype": "asymmetric mixed-modality figure",
-    "conclusion": "Exact phase attributions agree with direct interventions better than random phase selection.",
+    "conclusion": "Exact phase attributions identify a larger direct intervention than either nonselected phase.",
     "size_mm": [
       180,
       150

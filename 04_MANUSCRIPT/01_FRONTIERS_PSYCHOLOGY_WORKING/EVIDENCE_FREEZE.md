@@ -30,10 +30,10 @@ Manuscript-level claim audit refreshed: 2026-09-01. This refresh did not alter a
 | C1 overall scoring | 749 official-test videos | RICA²: rho 0.827787, MAE 6.167332, RMSE 8.759853; TrustDive: rho 0.834248, MAE 5.724603, RMSE 8.366534 | `analysis_summary_v7.json` -> `score` | Improvement is relative to the reproduced deterministic RICA² implementation, not a claim of SOTA. |
 | C2 high-disagreement scoring | 325 valid seven-judge test videos; 94 above the fit-set threshold | MAE 8.437511 to 7.495029; reduction 11.1701%; paired clustered CI for TrustDive minus RICA² `[-1.489157, -0.360943]` | `analysis_summary_v7.json` -> `high_judge_risk_scoring` | A robustness subgroup defined by observed score dispersion; not abnormal-judge detection. |
 | C2b differential subgroup benefit | Same 325-video panel subset | Difference-in-improvement estimate `0.270986`; clustered CI `[-0.318066, 0.816563]` | `analysis_summary_v7.json` -> `high_judge_risk_scoring` -> `risk_directed_gain` | The CI crosses zero. Do not state that TrustDive improves high-disagreement videos significantly more than ordinary-disagreement videos. |
-| C3 exact reconstruction | 735 closed-set official-test videos | maximum Shapley reconstruction error `2.38419e-7`; maximum scorer-alignment error `4.76837e-7` | `phase_evidence_summary_v7.json` | Exactness applies to the final model output only. |
-| C4 intervention fidelity | 735 closed-set official-test videos | top-phase match 0.906122; clustered CI `[0.883047, 0.928251]`; targeted-minus-random median 0.067163, CI `[0.053731, 0.083388]` | `analysis_summary_v7.json` -> `phase_evidence` | Model-faithfulness evidence; not a reconstruction of human deductions. |
-| C5 stability boundary | 735 closed-set official-test videos | boundary cosine 0.788393; boundary top-phase agreement 0.642177; alternate-reference cosine 0.862909 | `phase_evidence_summary_v7.json` | Report as moderate stability, not invariance. |
-| C6 phase distribution | 735 closed-set official-test videos | entry 69.5238%, flight 17.2789%, takeoff 13.1973% | `phase_evidence_summary_v7.json` | Potentially task- and model-dependent. |
+| C3 exact reconstruction | 735 reference-supported official-test videos | maximum Shapley reconstruction error `2.38419e-7`; maximum scorer-alignment error `4.76837e-7` | `phase_evidence_summary_v7.json` | Exactness applies to the final model output only. |
+| C4 intervention fidelity | 735 reference-supported official-test videos | top-phase match 0.906122; clustered CI `[0.883047, 0.928251]`; targeted-minus-random median 0.067163, CI `[0.053731, 0.083388]` | `analysis_summary_v7.json` -> `phase_evidence` | Model-faithfulness evidence; not a reconstruction of human deductions. |
+| C5 stability boundary | 735 reference-supported official-test videos | boundary cosine 0.788393; boundary top-phase agreement 0.642177; alternate-reference cosine 0.862909 | `phase_evidence_summary_v7.json` | Report as moderate stability, not invariance. |
+| C6 phase distribution | 735 reference-supported official-test videos | entry 69.5238%, flight 17.2789%, takeoff 13.1973% | `phase_evidence_summary_v7.json` | Potentially task- and model-dependent. |
 | C7 risk-weighting ablation | 94 high-disagreement test videos | risk-weighted minus plain Ridge MAE 0.009495; clustered CI `[-0.069797, 0.076458]` | `analysis_summary_v7.json` | Attribute the scoring gain to latent reference adaptation, not risk weighting. |
 | C8 exploratory review | 749 official-test videos | combined review accepted-MAE reduction 2.6682%; clustered CI `[-0.001509, 0.053403]` | `analysis_summary_v7.json` | Exploratory and non-decisive; no human-interaction claim. |
 
@@ -44,7 +44,11 @@ Manuscript-level claim audit refreshed: 2026-09-01. This refresh did not alter a
 - Action types: 52; action groups: 6; difficulty values: 23; event families: 39.
 - Valid seven-judge panels: 1,368 overall and 325 in the official test set. Three malformed score arrays were excluded only from panel analyses.
 - High disagreement: sample SD of the seven judge scores at or above the fit-set 75th percentile, `0.3933978962`; 94 of the 325 eligible test videos met this definition.
-- Closed-set phase evidence: at least three legal same-action, different-event-family references; 735/749 test videos. The remaining 14 fell back to RICA² and received no reference-based decomposition.
+- Reference-supported phase evidence: at least three legal same-action, different-event-family references; 735/749 test videos. The remaining 14 reference-sparse cases fell back to RICA² and received no reference-based decomposition.
+
+## Post-review analysis addendum (2026-09-03)
+
+The original v7 artifacts and hashes above remain unchanged. Low-cost analyses requested during manuscript review are stored separately under `03_RESULTS/MANUSCRIPT_REVISION_2026_09_03/` and governed by `01_PROTOCOL/manuscript_revision_contract_2026-09-03.yaml`. They add component-specific scoring ablations, eight-token phase-parser metrics, an annotated-boundary oracle, a leave-one-phase-out interaction audit, and fixed-reference-count runtime sensitivity. Their hashes are recorded in `03_RESULTS/MANUSCRIPT_REVISION_2026_09_03/run_manifest.json`; these analyses supplement rather than replace the frozen v7 evidence.
 
 ## Prohibited extrapolations
 

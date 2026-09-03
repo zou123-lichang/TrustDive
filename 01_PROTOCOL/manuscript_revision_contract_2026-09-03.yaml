@@ -1,0 +1,56 @@
+material_passport: manuscript-revision / reviewer-requested follow-up / 2026-09-03 / UNVERIFIED
+status: result-informed follow-up
+purpose: >
+  Address the component-attribution, phase-parser, statistical-interval, and
+  Shapley-value questions raised during the pre-submission review without
+  overwriting the protocol-locked v7 artifacts.
+
+read_only_inputs:
+  score_predictions: 03_RESULTS/V7_RISK_TASK/03_SCORE/predictions_v7.parquet
+  phase_evidence: 03_RESULTS/V7_RISK_TASK/04_PHASE_EVIDENCE/phase_evidence_v7.parquet
+  reference_map_development: 03_RESULTS/V7_RISK_TASK/02_BASELINES/reference_map_development_v7.npz
+  reference_map_final: 03_RESULTS/V7_RISK_TASK/02_BASELINES/reference_map_final_v7.npz
+  phase_predictions: 03_RESULTS/V2_DISAGREEMENT/01_FEATURES/phase_predictions_videomae_official_v2.npz
+
+component_ablation:
+  ridge_alphas: [10.0, 100.0, 1000.0]
+  validation_rule: minimum MAE subject to Spearman drop from frozen teacher <= 0.01
+  residual_clip_quantiles: [0.01, 0.99]
+  models:
+    - frozen_teacher
+    - score_only_linear
+    - latent_only_ridge
+    - reference_only_ridge
+    - full_latent_reference_ridge
+    - prespecified_risk_weighted_trustdive
+
+statistics:
+  independent_unit: video
+  cluster: event_family
+  bootstrap_iterations: 10000
+  seed: 20260903
+  delta_orientation: candidate_minus_comparator
+  primary_scoring_endpoint: mean_absolute_error
+  secondary_scoring_endpoints: [spearman, rmse, relative_l2]
+
+phase_parser:
+  evaluation_roles: [validation, official_test]
+  reported_accuracy_unit: sampled temporal token
+  phases: [takeoff, flight, entry]
+  boundary_projection: linear projection from the eight parser tokens to annotated video frames
+
+phase_attribution:
+  reference_neighborhood: fixed from the original query
+  oracle: FineDiving annotated transition boundaries used only for evaluation
+  coalitions: 8
+  interaction_threshold_quality_points: 0.05
+  boundary_error_association: event-family-clustered bootstrap Spearman correlation
+  deterministic_comparators:
+    - mean_nonselected_phase
+    - strongest_nonselected_phase
+
+claim_rules:
+  - Do not attribute score improvement to reference statistics unless the full model improves on latent-only Ridge.
+  - Call phase accuracy token-level, not frame-level.
+  - Describe Shapley values as reference-conditioned model attributions, not physical or psychological causes.
+  - Keep selective review exploratory.

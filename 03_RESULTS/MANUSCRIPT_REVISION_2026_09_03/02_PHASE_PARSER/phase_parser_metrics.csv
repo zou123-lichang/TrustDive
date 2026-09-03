@@ -1,0 +1,3 @@
+analysis_role,videos,temporal_tokens_per_video,token_accuracy,macro_f1,takeoff_to_flight_boundary_mae_frames,flight_to_entry_boundary_mae_frames,mean_normalized_token_boundary_error,mean_projected_frame_boundary_error_fraction,confusion_matrix
+validation,369,8,0.9549457994579946,0.9536883309037445,8.51490514905149,7.712737127371275,0.02252710027100271,0.08107482087888267,"[[856,19,0],[53,862,26],[0,35,1101]]"
+official_test,749,8,0.9676234979973297,0.9668585264447006,7.67861911119588,7.944688155636087,0.016188251001335113,0.07516645702551412,"[[1835,52,0],[43,1761,34],[0,65,2202]]"

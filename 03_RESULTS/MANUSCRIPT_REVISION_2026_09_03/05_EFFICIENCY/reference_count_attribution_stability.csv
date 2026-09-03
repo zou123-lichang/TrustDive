@@ -1,0 +1,3 @@
+comparison,contribution_cosine_median,top_phase_agreement,n
+K=3 vs K=5,0.9548721973506075,0.68,100
+K=10 vs K=5,0.9714404791560938,0.81,100

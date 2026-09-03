@@ -1,0 +1,34 @@
+{
+  "boundary_error_vs_attribution_disagreement_cluster_ci": [
+    0.027204901952183395,
+    0.17333554580890667
+  ],
+  "boundary_error_vs_attribution_disagreement_spearman": 0.10029606836570713,
+  "elapsed_seconds": 17.947136499918997,
+  "maximum_reconstruction_error": 4.440892098500626e-16,
+  "oracle_targeted_minus_mean_nonselected": {
+    "cluster_ci": [
+      0.1181790828704834,
+      0.14398925006389615
+    ],
+    "median": 0.13146114349365234
+  },
+  "oracle_targeted_minus_strongest_nonselected": {
+    "cluster_ci": [
+      0.08824729919433594,
+      0.112945556640625
+    ],
+    "median": 0.1022801399230957
+  },
+  "oracle_top_intervention_match": 0.9183673469387755,
+  "oracle_top_phase_share": {
+    "entry": 0.7115646258503401,
+    "flight": 0.13333333333333333,
+    "takeoff": 0.15510204081632653
+  },
+  "output_sha256": "27c018cc10d3c5e80bed131147335c115bad15388ef9b15e7049ac9664071ad1",
+  "predicted_oracle_contribution_cosine_median": 0.9205508531304171,
+  "predicted_oracle_top_phase_match": 0.6802721088435374,
+  "status": "COMPLETE",
+  "test_closed_set_n": 735
+}

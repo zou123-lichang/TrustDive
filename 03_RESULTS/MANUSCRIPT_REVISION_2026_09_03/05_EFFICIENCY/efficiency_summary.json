@@ -1,0 +1,8 @@
+{
+  "benchmark_sample_n": 100,
+  "benchmark_selection": "deterministic evenly spaced sample among test videos with at least ten legal references",
+  "metrics_sha256": "c919851edec7979a4368ebce61991d41d3d498437d4a424363a49b9c2b102346",
+  "runtime_sha256": "dc27ca4647f7f31f0fe43addfea7c318d42aaf5bbe3a56ee41ad64b7bec09105",
+  "stability_sha256": "12b0dc71e544d9983b811e41d9cb9881383aceeb3179ec6d848f2a50eb7577b2",
+  "status": "COMPLETE"
+}

@@ -34,6 +34,9 @@ EVIDENCE_PATH = V7_RESULTS_ROOT / "04_PHASE_EVIDENCE" / "phase_evidence_v7.parqu
 REVIEW_PATH = V7_RESULTS_ROOT / "05_RISK_REVIEW" / "review_priority_v7.parquet"
 SUMMARY_PATH = V7_RESULTS_ROOT / "05_RISK_REVIEW" / "analysis_summary_v7.json"
 ABLATION_PATH = V7_RESULTS_ROOT / "03_SCORE" / "ablation_summary_v7.csv"
+REVISION_ROOT = PROJECT_ROOT / "03_RESULTS" / "MANUSCRIPT_REVISION_2026_09_03"
+COMPONENT_PATH = REVISION_ROOT / "01_COMPONENT_ABLATION" / "component_metrics.csv"
+SHAPLEY_AUDIT_PATH = REVISION_ROOT / "03_SHAPLEY_AUDIT" / "shapley_additional_metrics.parquet"
 PHASE_CACHE = (
     PROJECT_ROOT
     / "03_RESULTS"
@@ -223,7 +226,7 @@ def _select_cases(data: FigureData) -> pd.DataFrame:
             test[(test.error_gain >= 0) & (test.ours_error <= test.ours_error.median())],
             "ours_error",
             0.50,
-            "Accurate closed-set case nearest the median error of the better-performing half",
+            "Accurate reference-supported case nearest the median error of the better-performing half",
         ),
         (
             "high_disagreement_gain",
@@ -375,6 +378,13 @@ def _build_figure2_source(data: FigureData) -> None:
 def _build_figure4_source(data: FigureData, cases: pd.DataFrame) -> None:
     evidence = data.evidence[(data.evidence.analysis_role == "official_test") & ~data.evidence.open_set.astype(bool)].copy()
     evidence["targeted_minus_random"] = evidence.targeted_intervention_effect - evidence.random_intervention_effect
+    audit = pd.read_parquet(SHAPLEY_AUDIT_PATH)
+    evidence = evidence.merge(
+        audit[["clip_uid", "targeted_effect", "mean_nonselected_effect", "strongest_nonselected_effect", "loo_reconstruction_error"]],
+        on="clip_uid",
+        how="inner",
+        validate="one_to_one",
+    )
     evidence.to_csv(SOURCE_ROOT / "Figure4_video_level.csv", index=False)
     selected_uid = cases.loc[cases.case_type == "high_disagreement_gain", "clip_uid"].iloc[0]
     selected = evidence[evidence.clip_uid == selected_uid].copy()
@@ -414,7 +424,7 @@ def _selected_perturbations(data: FigureData, cases: pd.DataFrame) -> pd.DataFra
 def _build_supplement_sources(data: FigureData) -> None:
     frame = data.frame.copy()
     frame.to_csv(SOURCE_ROOT / "FigureS1_dataset_overview.csv", index=False)
-    pd.read_csv(ABLATION_PATH).to_csv(SOURCE_ROOT / "FigureS2_ablation.csv", index=False)
+    pd.read_csv(COMPONENT_PATH).to_csv(SOURCE_ROOT / "FigureS2_ablation.csv", index=False)
     data.prediction[["clip_uid", "analysis_role", "valid_reference_count", "open_set", "reference_distance", "reference_dispersion"]].to_csv(
         SOURCE_ROOT / "FigureS3_reference_coverage.csv", index=False
     )
@@ -433,10 +443,10 @@ def _build_supplement_sources(data: FigureData) -> None:
 
 def _write_contracts() -> None:
     contracts = {
-        "Figure1": {"conclusion": "TrustDive converts a deterministic global score into reference-adapted scoring and exact phase evidence.", "archetype": "schematic-led composite", "size_mm": [180, 105]},
-        "Figure2": {"conclusion": "Reference adaptation reduces score error overall and in high-disagreement performances.", "archetype": "quantitative grid", "size_mm": [180, 128]},
+        "Figure1": {"conclusion": "TrustDive combines bounded latent calibration with exact reference-conditioned phase evidence.", "archetype": "schematic-led composite", "size_mm": [180, 105]},
+        "Figure2": {"conclusion": "Latent calibration reduces score error overall and in high-disagreement performances.", "archetype": "quantitative grid", "size_mm": [180, 128]},
         "Figure3": {"conclusion": "Enlarged real query phases and matched training references make the score decomposition inspectable in a typical and a high-disagreement performance.", "archetype": "image plate + quant", "size_mm": [180, 140]},
-        "Figure4": {"conclusion": "Exact phase attributions agree with direct interventions better than random phase selection.", "archetype": "asymmetric mixed-modality figure", "size_mm": [180, 150]},
+        "Figure4": {"conclusion": "Exact phase attributions identify a larger direct intervention than either nonselected phase.", "archetype": "asymmetric mixed-modality figure", "size_mm": [180, 150]},
         "Figure5": {"conclusion": "Phase evidence is informative but only moderately stable to boundary and reference changes.", "archetype": "asymmetric mixed-modality figure", "size_mm": [180, 135]},
         "backend": "Python/matplotlib exclusively",
         "exports": ["SVG", "PDF", "600 dpi TIFF", "300 dpi PNG"],
@@ -835,21 +845,32 @@ def render_figure4() -> dict:
     _panel(ax_b, "B", y=1.12)
     ax_c = fig.add_subplot(outer[2, 1:3])
     rng = np.random.default_rng(SEED)
-    values = [video.random_intervention_effect.to_numpy(), video.targeted_intervention_effect.to_numpy()]
-    parts = ax_c.violinplot(values, positions=[0, 1], widths=0.7, showextrema=False)
-    for body, color in zip(parts["bodies"], [COLORS["teacher"], COLORS["ours"]]):
+    values = [
+        video.mean_nonselected_effect.to_numpy(),
+        video.strongest_nonselected_effect.to_numpy(),
+        video.targeted_effect.to_numpy(),
+    ]
+    positions = [0, 1, 2]
+    parts = ax_c.violinplot(values, positions=positions, widths=0.72, showextrema=False)
+    for body, color in zip(parts["bodies"], [COLORS["teacher"], COLORS["mid"], COLORS["ours"]]):
         body.set_facecolor(color)
         body.set_alpha(0.25)
         body.set_edgecolor(color)
     subset = rng.choice(len(video), size=min(320, len(video)), replace=False)
-    for pos, vals, color in zip([0, 1], values, [COLORS["teacher"], COLORS["ours"]]):
+    for pos, vals, color in zip(positions, values, [COLORS["teacher"], COLORS["mid"], COLORS["ours"]]):
         ax_c.scatter(rng.normal(pos, 0.05, len(subset)), vals[subset], s=6, alpha=0.25, color=color, edgecolors="none", rasterized=True)
         ax_c.plot([pos - 0.18, pos + 0.18], [np.median(vals)] * 2, color=COLORS["ink"], lw=2.2)
-    ci = data.summary["phase_evidence"]["targeted_minus_random_cluster_ci"]
-    delta = float(np.median(video.targeted_minus_random))
-    ax_c.set_xticks([0, 1], ["Random phase", "Highest-contribution phase"])
+    delta_mean = float(np.median(video.targeted_effect - video.mean_nonselected_effect))
+    delta_strong = float(np.median(video.targeted_effect - video.strongest_nonselected_effect))
+    ax_c.set_xticks(positions, ["Mean of\nnonselected", "Strongest\nnonselected", "Highest\nattribution"])
     ax_c.set_ylabel("Absolute replacement effect")
-    ax_c.set_title(f"Median paired difference {delta:.3f}; 95% CI [{ci[0]:.3f}, {ci[1]:.3f}]", loc="left", fontweight="bold", fontsize=8, pad=5)
+    ax_c.set_title(
+        f"Highest minus mean = {delta_mean:.3f}; minus strongest = {delta_strong:.3f}",
+        loc="left",
+        fontweight="bold",
+        fontsize=8,
+        pad=5,
+    )
     _panel(ax_c, "C", x=-0.08, y=1.12)
     ax_d = fig.add_subplot(outer[2, 3])
     cmap = LinearSegmentedColormap.from_list("trust", ["#F4F7F9", COLORS["ours"]])
@@ -980,9 +1001,9 @@ def render_figure1() -> dict:
     ax.axis("off")
     headings = [
         (0.02, "1  Query performance"),
-        (0.265, "2  Reference-adaptive score"),
+        (0.265, "2  Latent-calibrated score"),
         (0.550, "3  Exact phase evidence"),
-        (0.795, "4  Review-ready output"),
+        (0.795, "4  Review-oriented record"),
     ]
     for x, heading in headings:
         ax.text(x, 0.955, heading, fontsize=8.0, fontweight="bold", va="top", color=COLORS["ink"])
@@ -1020,7 +1041,7 @@ def render_figure1() -> dict:
     ax.text(0.380, 0.744, "Frozen RICA²", ha="center", va="center", fontweight="bold", fontsize=8)
     ax.text(0.380, 0.683, f"global score  {case.teacher_score:.1f}", ha="center", va="center", fontsize=8)
     rounded_box(0.285, 0.415, 0.190, 0.16, COLORS["ours"], ImageColorLight(COLORS["ours"]))
-    ax.text(0.380, 0.519, "Latent reference adapter", ha="center", va="center", fontweight="bold", fontsize=8)
+    ax.text(0.380, 0.519, "Bounded latent calibrator", ha="center", va="center", fontweight="bold", fontsize=8)
     ax.text(0.380, 0.457, f"correction  →  {case.trustdive_score:.1f}", ha="center", va="center", fontsize=8)
     ax.text(0.380, 0.360, "Five same-action, cross-family\ntraining references", ha="center", va="top", fontsize=8, color=COLORS["mid"])
 
@@ -1053,14 +1074,14 @@ def render_figure1() -> dict:
         ax.text(0.807, y0, phase.title(), ha="left", va="center", fontsize=8, color=color, fontweight="bold")
         ax.add_patch(Rectangle((0.866, y0 - 0.012), min(abs(value), 0.48) * 0.13, 0.024, fc=color, ec="none", alpha=0.9))
         ax.text(0.954, y0, f"{value:+.2f}", ha="right", va="center", fontsize=8)
-    ax.text(0.882, 0.395, "Top: entry  |  stability: moderate", ha="center", va="center", fontsize=8, color=COLORS["mid"])
+    ax.text(0.882, 0.468, "Reference-supported", ha="center", va="center", fontsize=8, color=COLORS["mid"])
 
     arrow((0.225, 0.705), (0.282, 0.705))
     arrow((0.380, 0.635), (0.380, 0.580), COLORS["ours"])
     arrow((0.478, 0.495), (0.535, 0.565), COLORS["ours"])
     arrow((0.748, 0.600), (0.787, 0.600), COLORS["flight"])
     ax.plot([0.285, 0.475], [0.095, 0.095], color=COLORS["ours"], lw=3)
-    ax.text(0.380, 0.070, "score adaptation", ha="center", va="top", color=COLORS["ours"], fontsize=8, fontweight="bold")
+    ax.text(0.380, 0.070, "score calibration", ha="center", va="top", color=COLORS["ours"], fontsize=8, fontweight="bold")
     ax.plot([0.540, 0.975], [0.095, 0.095], color=COLORS["flight"], lw=3)
     ax.text(0.758, 0.070, "counterfactual evidence path", ha="center", va="top", color=COLORS["flight"], fontsize=8, fontweight="bold")
     return _save(fig, "Figure1_method_overview")
@@ -1097,19 +1118,38 @@ def render_supplement() -> dict:
     outputs["FigureS1"] = _save(fig, "FigureS1_dataset_overview")
     plt.close(fig)
     ablation = pd.read_csv(SOURCE_ROOT / "FigureS2_ablation.csv")
+    model_labels = {
+        "frozen_teacher": "Frozen RICA²",
+        "score_only_linear": "Score-only linear",
+        "latent_only_ridge": "Latent-only Ridge",
+        "reference_only_ridge": "Reference-only Ridge",
+        "full_latent_reference_ridge": "Full latent-reference Ridge",
+        "prespecified_trustdive": "TrustDive (prespecified)",
+    }
+    ablation["display_model"] = ablation.model.map(model_labels).fillna(ablation.model)
     fig, axes = plt.subplots(1, 2, figsize=(180 * MM, 82 * MM), layout="constrained")
     y = np.arange(len(ablation))
     alphas = np.linspace(0.45, 1, len(ablation))
     ablation_colors = [to_rgba(COLORS["teacher"] if index == 0 else COLORS["ours"], alpha=float(alphas[index])) for index in range(len(ablation))]
-    axes[0].barh(y, ablation.spearman, color=ablation_colors)
-    axes[0].set_yticks(y, ablation.model)
+    axes[0].hlines(y, 0.826, ablation.spearman, color=ablation_colors, lw=1.6)
+    axes[0].scatter(ablation.spearman, y, color=ablation_colors, s=34, zorder=3)
+    axes[0].axvline(float(ablation.iloc[0].spearman), color=COLORS["teacher"], ls="--", lw=1.0)
+    axes[0].set_yticks(y, ablation.display_model)
     axes[0].invert_yaxis()
     axes[0].set_xlabel("Spearman ρ")
+    axes[0].set_xlim(0.826, 0.837)
+    for row in ablation.itertuples():
+        axes[0].text(float(row.spearman) + 0.00015, list(ablation.model).index(row.model), f"{row.spearman:.4f}", va="center", fontsize=8)
     _panel(axes[0], "A")
-    axes[1].barh(y, ablation.mae, color=ablation_colors)
+    axes[1].hlines(y, 5.64, ablation.mae, color=ablation_colors, lw=1.6)
+    axes[1].scatter(ablation.mae, y, color=ablation_colors, s=34, zorder=3)
+    axes[1].axvline(float(ablation.iloc[0].mae), color=COLORS["teacher"], ls="--", lw=1.0)
     axes[1].set_yticks(y, [])
     axes[1].invert_yaxis()
     axes[1].set_xlabel("MAE (score points)")
+    axes[1].set_xlim(5.64, 6.22)
+    for row in ablation.itertuples():
+        axes[1].text(float(row.mae) + 0.008, list(ablation.model).index(row.model), f"{row.mae:.3f}", va="center", fontsize=8)
     _panel(axes[1], "B")
     outputs["FigureS2"] = _save(fig, "FigureS2_scoring_ablation")
     plt.close(fig)
@@ -1122,7 +1162,7 @@ def render_supplement() -> dict:
     _panel(axes[0], "A")
     axes[1].scatter(test_refs.reference_distance, test_refs.reference_dispersion, c=test_refs.open_set.map({False: COLORS["ours"], True: COLORS["failure"]}), s=12, alpha=0.45)
     axes[1].set(xlabel="Mean reference distance", ylabel="Reference-score dispersion")
-    axes[1].set_title("14 open-set videos fall back to RICA²", loc="left")
+    axes[1].set_title("14 reference-sparse videos fall back to RICA²", loc="left")
     _panel(axes[1], "B")
     outputs["FigureS3"] = _save(fig, "FigureS3_reference_coverage")
     plt.close(fig)
@@ -1168,14 +1208,14 @@ def render_figure3_variant_supplement() -> dict:
 
 
 CAPTIONS = {
-    "Figure1": "Overview of TrustDive. A deterministic RICA² scoring foundation is adapted using five same-action references from different event families. The final deployed scorer is then evaluated on eight feature-level query/reference phase coalitions to obtain exact model-attributed contributions for takeoff, flight, and entry. The example frames visualize the information returned by the system; quantitative results are reported in subsequent figures.",
-    "Figure2": "Reference-adaptive score assessment. (A,B) Official and predicted total scores for RICA² and TrustDive on all 749 official-test videos; dashed lines indicate identity. (C) Video-level reduction in absolute error, with all videos and the high-disagreement subset shown on the same scale; positive values indicate lower TrustDive error. Points denote videos and horizontal lines denote medians. (D) Mean MAE reduction with 95% event-family-clustered bootstrap intervals. High disagreement was defined by the frozen fit-set threshold and does not denote abnormal judging.",
-    "Figure3": "Mechanically selected real-video examples. The two full-width case cards show a typical accurate performance and a high-disagreement performance for which reference adaptation reduced score error. Enlarged query images show the midpoint of each predicted takeoff, flight, and entry phase after one deterministic sequence-level crop; the smaller lower row shows the nearest displayed legal training reference. Right panels report exact model-attributed phase contributions in execution-quality points. Crop centers were derived from movement across the frozen 25%, 50%, and 75% phase frames, without pose inference or local retouching. Cases were selected by prespecified performance strata rather than visual appeal.",
-    "Figure4": "Counterfactual fidelity of phase evidence. (A) All eight feature-level coalitions for one mechanically selected high-disagreement case; Q and R indicate phases from the query and reference. These tiles illustrate feature provenance and are not generated videos. (B) Exact Shapley reconstruction of the final execution-quality prediction. (C) Absolute score effects after replacing a random phase or the highest-contribution phase across 735 closed-set videos. (D) Agreement between the highest attributed phase and the phase with the largest direct intervention effect.",
-    "Figure5": "Distribution and stability boundaries of phase evidence. (A) Highest-contribution phase across 735 closed-set test videos. (B) Contribution-vector cosine similarity after one-token boundary shifts and alternate-reference replacement. (C) Highest-phase agreement under boundary shifts, stratified by the original highest-contribution phase; points and 95% clustered bootstrap intervals are shown. (D,E) Mechanically selected boundary-sensitive and reference-sensitive cases with deterministic perturbation results. These analyses characterize model-evidence stability, not human judging processes.",
+    "Figure1": "Overview of TrustDive. A deterministic RICA² scoring foundation undergoes bounded latent calibration, while five same-action references from different event families define a fixed comparison neighborhood. The final deployed scorer is evaluated on eight feature-level query/reference phase coalitions to obtain exact model-attributed contributions for takeoff, flight, and entry. Example frames visualize the returned evidence; quantitative results are reported in subsequent figures.",
+    "Figure2": "Latent-calibrated score assessment. (A,B) Official and predicted total scores for RICA² and the prespecified TrustDive model on all 749 official-test videos; dashed lines indicate identity. (C) Video-level reduction in absolute error, with all videos and the high-disagreement subset shown on the same scale; positive values indicate lower TrustDive error. Points denote videos and horizontal lines denote medians. (D) Mean MAE reduction with 95% event-family-clustered bootstrap intervals. High disagreement was defined by the frozen fit-set threshold and does not denote abnormal judging.",
+    "Figure3": "Mechanically selected real-video examples. The two full-width case cards show a typical accurate performance and a high-disagreement performance for which the calibrated scorer reduced score error. Enlarged query images show the midpoint of each predicted takeoff, flight, and entry phase after one deterministic sequence-level crop; the smaller lower row shows the nearest displayed legal training reference. Right panels report exact model-attributed phase contributions in execution-quality points. Crop centers were derived from movement across the frozen 25%, 50%, and 75% phase frames, without pose inference or local retouching. Cases were selected by prespecified performance strata rather than visual appeal.",
+    "Figure4": "Counterfactual fidelity of phase evidence. (A) All eight feature-level coalitions for one mechanically selected high-disagreement case; Q and R indicate phases from the query and reference. These tiles illustrate feature provenance and are not generated videos. (B) Exact Shapley reconstruction of the final execution-quality prediction. (C) Absolute score effect of the highest-contribution phase compared with the mean and strongest of the two nonselected phases across 735 reference-supported videos. (D) Agreement between the highest attributed phase and the phase with the largest direct intervention effect.",
+    "Figure5": "Distribution and stability boundaries of phase evidence. (A) Highest-contribution phase across 735 reference-supported test videos. (B) Contribution-vector cosine similarity after one-token boundary shifts and alternate-reference replacement. (C) Highest-phase agreement under boundary shifts, stratified by the original highest-contribution phase; points and 95% clustered bootstrap intervals are shown. (D,E) Mechanically selected boundary-sensitive and reference-sensitive cases with deterministic perturbation results. These analyses characterize model-evidence stability, not human judging processes.",
     "FigureS1": "FineDiving dataset overview. (A) Number of videos in each action group. (B) Distribution of execution-quality scores by action group. (C) Number of videos with three, five, or seven available judge scores.",
-    "FigureS2": "Complete scoring ablation. (A) Spearman correlation and (B) mean absolute error for the deterministic RICA² foundation, global linear calibration, same-action reference residual, ordinary latent-reference Ridge, and the risk-weighted candidate. Risk weighting did not improve on ordinary Ridge.",
-    "FigureS3": "Reference coverage in the official test set. (A) Number of legal same-action, cross-family training references. (B) Reference distance and score dispersion; 14 open-set videos had fewer than three legal references and therefore fell back to deterministic RICA² without reference-based phase evidence.",
+    "FigureS2": "Component scoring ablation. (A) Spearman correlation and (B) mean absolute error for the deterministic RICA² foundation, score-only calibration, latent-only Ridge, reference-only Ridge, full latent-reference Ridge, and the prespecified risk-weighted TrustDive model. Latent calibration explains most of the error reduction; reference statistics add only a small incremental scoring effect, and risk weighting does not improve the full ordinary Ridge model.",
+    "FigureS3": "Reference coverage in the official test set. (A) Number of legal same-action, cross-family training references. (B) Reference distance and score dispersion; 14 reference-sparse videos had fewer than three legal references and therefore fell back to deterministic RICA² without reference-conditioned phase evidence.",
     "FigureS4": "Exploratory selective-review analysis. Coverage–risk curves compare deterministic RICA² uncertainty with the combined review priority. The vertical line marks 80% automatic coverage. The combined strategy did not establish a confirmatory review benefit and is reported as exploratory.",
     "FigureS5": "Additional mechanically selected success, failure, and evidence-sensitivity examples. Each phase tile contains frames at 25%, 50%, and 75% of the predicted phase; bars show model-attributed phase contributions.",
 }
@@ -1187,8 +1227,8 @@ ALT_TEXT = {
     "Figure4": "Eight query-reference phase combinations are paired with a Shapley waterfall, intervention-effect distributions, and a phase-matching confusion matrix.",
     "Figure5": "Phase-frequency bars, stability distributions, boundary-agreement estimates, and two real-video failure-boundary cases show that phase evidence is useful but not invariant.",
     "FigureS1": "Three panels summarize FineDiving action-group counts, execution-quality distributions, and the numbers of videos with three, five, or seven judge scores.",
-    "FigureS2": "Horizontal bars compare Spearman correlation and mean absolute error across five scoring baselines and ablations.",
-    "FigureS3": "A reference-count bar chart and distance-versus-dispersion scatterplot identify 14 open-set official-test videos.",
+    "FigureS2": "Horizontal bars compare Spearman correlation and mean absolute error across six component scoring baselines and ablations.",
+    "FigureS3": "A reference-count bar chart and distance-versus-dispersion scatterplot identify 14 reference-sparse official-test videos.",
     "FigureS4": "Two coverage–risk curves show an exploratory and statistically limited selective-review comparison at 80 percent automatic coverage.",
     "FigureS5": "Five rows of real takeoff, flight, and entry frame strips accompany phase-contribution bars for mechanically selected success, failure, and sensitivity cases.",
 }

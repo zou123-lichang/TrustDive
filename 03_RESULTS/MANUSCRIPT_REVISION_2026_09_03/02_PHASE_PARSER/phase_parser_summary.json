@@ -1,0 +1,7 @@
+{
+  "metric_unit": "eight sampled temporal tokens per video",
+  "metrics_sha256": "eba06a7678956606577853a540291b2c37f0a28836e6f6432b4222051fa8586e",
+  "original_frame_boundary_errors_are_linear_projections": true,
+  "per_video_sha256": "b30fe025996814e7454c639428db79fac59b0bf88935d361aa99b57ad030353b",
+  "status": "COMPLETE"
+}
