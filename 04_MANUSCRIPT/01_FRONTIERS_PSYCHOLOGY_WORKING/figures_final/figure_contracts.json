@@ -8,11 +8,11 @@
     ]
   },
   "Figure2": {
-    "archetype": "quantitative grid",
-    "conclusion": "Latent calibration reduces score error overall and in high-disagreement performances.",
+    "archetype": "asymmetric quantitative grid",
+    "conclusion": "Under a shared frozen-feature protocol, TrustDive yields the lowest absolute error while TSA-style yields the highest rank correlation.",
     "size_mm": [
       180,
-      128
+      105
     ]
   },
   "Figure3": {
@@ -20,15 +20,15 @@
     "conclusion": "Enlarged real query phases and matched training references make the score decomposition inspectable in a typical and a high-disagreement performance.",
     "size_mm": [
       180,
-      140
+      150
     ]
   },
   "Figure4": {
     "archetype": "asymmetric mixed-modality figure",
-    "conclusion": "Exact phase attributions identify a larger direct intervention than either nonselected phase.",
+    "conclusion": "Across 735 reference-supported videos, the highest attributed phase usually matches and exceeds the phase with the largest direct intervention effect.",
     "size_mm": [
       180,
-      150
+      170
     ]
   },
   "Figure5": {
@@ -53,3 +53,4 @@
     "feature-level coalitions are not generated videos"
   ]
 }
+

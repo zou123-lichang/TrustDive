@@ -36,7 +36,12 @@ SUMMARY_PATH = V7_RESULTS_ROOT / "05_RISK_REVIEW" / "analysis_summary_v7.json"
 ABLATION_PATH = V7_RESULTS_ROOT / "03_SCORE" / "ablation_summary_v7.csv"
 REVISION_ROOT = PROJECT_ROOT / "03_RESULTS" / "MANUSCRIPT_REVISION_2026_09_03"
 COMPONENT_PATH = REVISION_ROOT / "01_COMPONENT_ABLATION" / "component_metrics.csv"
+COMPONENT_INTERVAL_PATH = REVISION_ROOT / "01_COMPONENT_ABLATION" / "paired_clustered_intervals.csv"
 SHAPLEY_AUDIT_PATH = REVISION_ROOT / "03_SHAPLEY_AUDIT" / "shapley_additional_metrics.parquet"
+SHAPLEY_SUMMARY_PATH = REVISION_ROOT / "03_SHAPLEY_AUDIT" / "shapley_audit_summary.json"
+V10_ANALYSIS_ROOT = PROJECT_ROOT / "03_RESULTS" / "V10_FEATURE_BASELINES" / "04_ANALYSIS"
+V10_COMPARISON_PATH = V10_ANALYSIS_ROOT / "comparison_v10.csv"
+V10_BOOTSTRAP_PATH = V10_ANALYSIS_ROOT / "paired_bootstrap_v10.csv"
 PHASE_CACHE = (
     PROJECT_ROOT
     / "03_RESULTS"
@@ -356,23 +361,48 @@ def _build_figure2_source(data: FigureData) -> None:
     merged = _merged(data)
     test = merged[merged.analysis_role == "official_test"].copy()
     test["paired_mae_difference"] = test.ours_error - test.teacher_error
-    panel = test[test.disagreement_primary_eligible.astype(bool)]
-    high = panel[panel.high_judge_risk.astype(bool)]
-    rows = []
-    for label, subset in (("All official test", test), ("Seven-judge test", panel), ("High disagreement", high)):
-        values = subset.paired_mae_difference.to_numpy(dtype=float)
-        lower, upper = _cluster_bootstrap_mean(values, subset.event_family.to_numpy())
-        rows.append(
-            {
-                "subset": label,
-                "n": len(subset),
-                "trustdive_minus_rica2_mae": float(values.mean()),
-                "ci_lower": lower,
-                "ci_upper": upper,
-            }
-        )
+    frozen_intervals = pd.read_csv(COMPONENT_INTERVAL_PATH)
+    rica_effect = frozen_intervals[
+        (frozen_intervals.candidate == "prespecified_trustdive")
+        & (frozen_intervals.comparator == "frozen_teacher")
+        & (frozen_intervals.metric == "mae")
+    ].iloc[0]
+    rica_row = {
+        "baseline": "Deterministic RICA²",
+        "estimate": float(rica_effect.delta_candidate_minus_comparator),
+        "ci_low": float(rica_effect.ci_low),
+        "ci_high": float(rica_effect.ci_high),
+        "iterations": int(rica_effect.iterations),
+        "subset": "overall",
+    }
+
+    comparison = pd.read_csv(V10_COMPARISON_PATH).rename(
+        columns={"relative_l2_variance_ratio_internal": "relative_l2_internal"}
+    )
+    model_names = {
+        "Deterministic RICA2": "Deterministic RICA²",
+        "core_style": "RICA² + CoRe-style",
+        "tsa_style": "RICA² + TSA-style",
+        "TrustDive": "TrustDive",
+    }
+    comparison["model"] = comparison.model.map(model_names)
+    if comparison.model.isna().any() or len(comparison) != 4:
+        raise AssertionError("Unexpected v10 model names in Figure 2 source data")
+    order = list(model_names.values())
+    comparison["model_order"] = comparison.model.map({name: index for index, name in enumerate(order)})
+    comparison = comparison.sort_values("model_order").drop(columns="model_order")
+
+    bootstrap = pd.read_csv(V10_BOOTSTRAP_PATH)
+    baseline_names = {"core_style": "RICA² + CoRe-style", "tsa_style": "RICA² + TSA-style"}
+    matched = bootstrap[(bootstrap.metric == "mae") & (bootstrap.subset == "overall")].copy()
+    matched["baseline"] = matched.baseline.map(baseline_names)
+    matched = matched.rename(columns={"ci_lower": "ci_low", "ci_upper": "ci_high"})[
+        ["baseline", "estimate", "ci_low", "ci_high", "iterations", "subset"]
+    ]
+    paired = pd.concat([pd.DataFrame([rica_row]), matched], ignore_index=True)
     test.to_csv(SOURCE_ROOT / "Figure2_video_level.csv", index=False)
-    pd.DataFrame(rows).to_csv(SOURCE_ROOT / "Figure2_effects.csv", index=False)
+    comparison.to_csv(SOURCE_ROOT / "Figure2_model_metrics.csv", index=False)
+    paired.to_csv(SOURCE_ROOT / "Figure2_paired_mae_differences.csv", index=False)
 
 
 def _build_figure4_source(data: FigureData, cases: pd.DataFrame) -> None:
@@ -391,6 +421,18 @@ def _build_figure4_source(data: FigureData, cases: pd.DataFrame) -> None:
     selected.to_csv(SOURCE_ROOT / "Figure4_hero_case.csv", index=False)
     confusion = pd.crosstab(evidence.top_phase, evidence.actual_max_intervention_phase).reindex(index=PHASES, columns=PHASES, fill_value=0)
     confusion.rename_axis("attributed_phase").reset_index().to_csv(SOURCE_ROOT / "Figure4_phase_confusion.csv", index=False)
+    summary = json.loads(SHAPLEY_SUMMARY_PATH.read_text(encoding="utf-8"))["deterministic_intervention_comparisons"]
+    pd.DataFrame(
+        [
+            {
+                "comparison": key,
+                "median": value["median"],
+                "ci_lower": value["cluster_ci"][0],
+                "ci_upper": value["cluster_ci"][1],
+            }
+            for key, value in summary.items()
+        ]
+    ).to_csv(SOURCE_ROOT / "Figure4_intervention_summary.csv", index=False)
 
 
 def _selected_perturbations(data: FigureData, cases: pd.DataFrame) -> pd.DataFrame:
@@ -444,9 +486,9 @@ def _build_supplement_sources(data: FigureData) -> None:
 def _write_contracts() -> None:
     contracts = {
         "Figure1": {"conclusion": "TrustDive combines bounded latent calibration with exact reference-conditioned phase evidence.", "archetype": "schematic-led composite", "size_mm": [180, 105]},
-        "Figure2": {"conclusion": "Latent calibration reduces score error overall and in high-disagreement performances.", "archetype": "quantitative grid", "size_mm": [180, 128]},
-        "Figure3": {"conclusion": "Enlarged real query phases and matched training references make the score decomposition inspectable in a typical and a high-disagreement performance.", "archetype": "image plate + quant", "size_mm": [180, 140]},
-        "Figure4": {"conclusion": "Exact phase attributions identify a larger direct intervention than either nonselected phase.", "archetype": "asymmetric mixed-modality figure", "size_mm": [180, 150]},
+        "Figure2": {"conclusion": "Under a shared frozen-feature protocol, TrustDive yields the lowest absolute error while TSA-style yields the highest rank correlation.", "archetype": "asymmetric quantitative grid", "size_mm": [180, 105]},
+        "Figure3": {"conclusion": "Enlarged real query phases and matched training references make the score decomposition inspectable in a typical and a high-disagreement performance.", "archetype": "image plate + quant", "size_mm": [180, 150]},
+        "Figure4": {"conclusion": "Across 735 reference-supported videos, the highest attributed phase usually matches and exceeds the phase with the largest direct intervention effect.", "archetype": "asymmetric mixed-modality figure", "size_mm": [180, 170]},
         "Figure5": {"conclusion": "Phase evidence is informative but only moderately stable to boundary and reference changes.", "archetype": "asymmetric mixed-modality figure", "size_mm": [180, 135]},
         "backend": "Python/matplotlib exclusively",
         "exports": ["SVG", "PDF", "600 dpi TIFF", "300 dpi PNG"],
@@ -595,104 +637,110 @@ def render_figure2() -> dict:
     import matplotlib.pyplot as plt
 
     _configure()
-    data = pd.read_csv(SOURCE_ROOT / "Figure2_video_level.csv")
-    effects = pd.read_csv(SOURCE_ROOT / "Figure2_effects.csv")
-    fig = plt.figure(figsize=(180 * MM, 128 * MM), layout="constrained")
-    grid = fig.add_gridspec(2, 2, height_ratios=[1.22, 0.88], wspace=0.24, hspace=0.34)
-    ax_a = fig.add_subplot(grid[0, 0])
-    ax_b = fig.add_subplot(grid[0, 1], sharex=ax_a, sharey=ax_a)
-    limits = [float(data.dive_score.min()), float(data.dive_score.max())]
-    for ax, column, title, color, label in (
-        (ax_a, "teacher_predicted_score", "RICA²", COLORS["teacher"], "A"),
-        (ax_b, "trustdive_predicted_score", "TrustDive", COLORS["ours"], "B"),
-    ):
-        ax.scatter(data.dive_score, data[column], s=10, alpha=0.38, color=color, edgecolors="none", rasterized=True)
-        ax.plot(limits, limits, "--", color=COLORS["ink"], lw=1.2)
-        ax.set_xlim(limits)
-        ax.set_ylim(limits)
-        ax.set_aspect("equal", adjustable="box")
-        ax.set_xlabel("Official score")
-        ax.set_ylabel("Predicted score")
-        rho, mae = _quality_metrics(data.dive_score.to_numpy(), data[column].to_numpy())
-        ax.text(
-            0.03,
-            0.97,
-            f"{title}\nρ = {rho:.3f}   MAE = {mae:.2f}",
-            transform=ax.transAxes,
-            ha="left",
-            va="top",
-            fontweight="bold",
-            fontsize=8,
-            bbox={"facecolor": "white", "alpha": 0.88, "edgecolor": "none", "pad": 1.8},
-        )
-        _panel(ax, label, x=-0.18, y=1.08)
-    ax_c = fig.add_subplot(grid[1, 0])
-    rng = np.random.default_rng(SEED)
-    groups = [data, data[data.high_judge_risk.astype(bool)]]
-    labels = ["All test\n($n$=749)", "High disagreement\n($n$=94)"]
-    values = [group.teacher_error.to_numpy() - group.ours_error.to_numpy() for group in groups]
-    parts = ax_c.violinplot(values, positions=[0, 1], widths=0.72, showextrema=False)
-    for body, color in zip(parts["bodies"], [COLORS["ours"], COLORS["flight"]]):
-        body.set_facecolor(color)
-        body.set_alpha(0.24)
-        body.set_edgecolor(color)
-    for pos, vals, color in zip([0, 1], values, [COLORS["ours"], COLORS["flight"]]):
-        jitter = rng.normal(pos, 0.055, len(vals))
-        ax_c.scatter(jitter, vals, s=7, alpha=0.22, color=color, edgecolors="none", rasterized=True)
-        ax_c.plot([pos - 0.18, pos + 0.18], [np.median(vals)] * 2, color=COLORS["ink"], lw=2.2)
-    ax_c.axhline(0, color=COLORS["ink"], ls="--", lw=1.2)
-    ax_c.set_xticks([0, 1], labels)
-    ax_c.set_ylabel("Absolute-error reduction\n(RICA² − TrustDive; score points)")
-    ax_c.set_ylim(-8.6, 8.8)
-    ax_c.text(
-        0.98,
-        0.95,
-        "positive = lower TrustDive error",
-        transform=ax_c.transAxes,
-        ha="right",
-        va="top",
-        color=COLORS["ours"],
-        fontweight="bold",
-        fontsize=8,
-    )
-    ax_c.tick_params(axis="x", labelsize=8)
-    _panel(ax_c, "C", x=-0.10, y=1.08)
-    ax_d = fig.add_subplot(grid[1, 1])
-    y = np.arange(len(effects))[::-1]
-    improvement = -effects.trustdive_minus_rica2_mae.to_numpy(dtype=float)
-    lower = -effects.ci_upper.to_numpy(dtype=float)
-    upper = -effects.ci_lower.to_numpy(dtype=float)
-    ax_d.errorbar(
-        improvement,
-        y,
-        xerr=[improvement - lower, upper - improvement],
-        fmt="o",
-        color=COLORS["ours"],
-        ecolor=COLORS["ours"],
-        capsize=3,
-        markersize=5,
-    )
-    ax_d.axvline(0, color=COLORS["ink"], ls="--", lw=1.2)
-    short_names = {
-        "All official test": "All test",
-        "Seven-judge test": "Seven-judge",
-        "High disagreement": "High disagreement",
+    metrics = pd.read_csv(SOURCE_ROOT / "Figure2_model_metrics.csv")
+    effects = pd.read_csv(SOURCE_ROOT / "Figure2_paired_mae_differences.csv")
+    fig = plt.figure(figsize=(180 * MM, 105 * MM))
+    fig.subplots_adjust(left=0.085, right=0.985, top=0.92, bottom=0.14, wspace=0.72, hspace=0.72)
+    grid = fig.add_gridspec(2, 5, width_ratios=[1.20, 1.20, 0.12, 1.0, 1.0])
+    ax_a = fig.add_subplot(grid[:, :2])
+    ax_b = fig.add_subplot(grid[0, 3:])
+    ax_c = fig.add_subplot(grid[1, 3:])
+
+    method_colors = {
+        "Deterministic RICA²": COLORS["teacher"],
+        "RICA² + CoRe-style": "#7FA8C9",
+        "RICA² + TSA-style": COLORS["flight"],
+        "TrustDive": COLORS["ours"],
     }
-    ax_d.set_yticks(y, [f"{short_names.get(row.subset, row.subset)}  ($n$={row.n})" for row in effects.itertuples(index=False)])
-    ax_d.set_xlabel("MAE reduction (RICA² − TrustDive)")
-    ax_d.set_xlim(min(-0.25, float(lower.min()) - 0.15), float(upper.max()) + 0.35)
-    for x_value, y_value in zip(improvement, y):
-        ax_d.text(
-            x_value + 0.08,
-            y_value,
-            f"{x_value:.2f}",
-            va="center",
-            ha="left",
-            color=COLORS["ours"],
-            fontsize=8,
-            bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "none", "pad": 0.4},
+    method_markers = {"Deterministic RICA²": "o", "RICA² + CoRe-style": "s", "RICA² + TSA-style": "D", "TrustDive": "*"}
+    short = {"Deterministic RICA²": "RICA²", "RICA² + CoRe-style": "CoRe-style", "RICA² + TSA-style": "TSA-style", "TrustDive": "TrustDive"}
+    label_specs = {
+        "Deterministic RICA²": (6.215, 0.82725, "right", "top"),
+        "RICA² + CoRe-style": (5.750, 0.83320, "left", "top"),
+        "RICA² + TSA-style": (5.770, 0.83845, "left", "bottom"),
+        "TrustDive": (5.885, 0.83525, "right", "bottom"),
+    }
+    for row in metrics.itertuples(index=False):
+        color = method_colors[row.model]
+        ax_a.scatter(
+            row.mae,
+            row.spearman,
+            s=95 if row.model == "TrustDive" else 62,
+            marker=method_markers[row.model],
+            color=color,
+            edgecolor="white",
+            linewidth=0.9,
+            zorder=4,
         )
-    _panel(ax_d, "D", x=-0.10, y=1.08)
+        label_x, label_y, label_ha, label_va = label_specs[row.model]
+        ax_a.annotate(
+            f"{short[row.model]}\nMAE {row.mae:.3f}  |  ρ {row.spearman:.4f}",
+            xy=(row.mae, row.spearman),
+            xytext=(label_x, label_y),
+            textcoords="data",
+            ha=label_ha,
+            va=label_va,
+            color=color if row.model != "Deterministic RICA²" else COLORS["mid"],
+            fontweight="bold" if row.model in {"TrustDive", "RICA² + TSA-style"} else "normal",
+            fontsize=8,
+            arrowprops={"arrowstyle": "-", "color": color, "lw": 0.8} if row.model == "TrustDive" else None,
+        )
+    ax_a.plot(
+        [metrics.loc[metrics.model == "TrustDive", "mae"].iloc[0], metrics.loc[metrics.model == "RICA² + TSA-style", "mae"].iloc[0]],
+        [metrics.loc[metrics.model == "TrustDive", "spearman"].iloc[0], metrics.loc[metrics.model == "RICA² + TSA-style", "spearman"].iloc[0]],
+        color="#B7C2CA",
+        lw=1.0,
+        ls="--",
+        zorder=1,
+    )
+    ax_a.annotate(
+        "better",
+        xy=(5.69, 0.8394),
+        xytext=(5.84, 0.8364),
+        arrowprops={"arrowstyle": "->", "color": COLORS["mid"], "lw": 1.0},
+        color=COLORS["mid"],
+        fontsize=8,
+        ha="center",
+    )
+    ax_a.set_xlim(5.66, 6.23)
+    ax_a.set_ylim(0.8258, 0.8403)
+    ax_a.set_xlabel("Mean absolute error (score points; lower is better)")
+    ax_a.set_ylabel("Spearman's ρ (higher is better)")
+    ax_a.grid(color="#E6EBEF", lw=0.7, alpha=0.9)
+    ax_a.set_axisbelow(True)
+    _panel(ax_a, "A", x=-0.16, y=1.04)
+
+    baseline_order = ["Deterministic RICA²", "RICA² + CoRe-style", "RICA² + TSA-style"]
+    effects = effects.set_index("baseline").loc[baseline_order].reset_index()
+    y = np.arange(len(effects))[::-1]
+    estimates = effects.estimate.to_numpy(dtype=float)
+    lo = effects.ci_low.to_numpy(dtype=float)
+    hi = effects.ci_high.to_numpy(dtype=float)
+    for yi, row in zip(y, effects.itertuples(index=False)):
+        color = COLORS["ours"] if row.ci_high < 0 else "#7891A3"
+        ax_b.plot([row.ci_low, row.ci_high], [yi, yi], color=color, lw=1.6)
+        ax_b.plot(row.estimate, yi, "o", color=color, ms=5.5)
+    ax_b.axvline(0, color=COLORS["ink"], ls="--", lw=1.0)
+    ax_b.set_yticks(y, [short[name] for name in effects.baseline])
+    ax_b.set_xlim(-0.72, 0.22)
+    ax_b.set_xlabel("ΔMAE (TrustDive − baseline)")
+    ax_b.text(0.99, 1.03, "negative values favor TrustDive", transform=ax_b.transAxes, ha="right", va="bottom", color=COLORS["ours"], fontweight="bold", fontsize=8)
+    _panel(ax_b, "B", x=-0.24, y=1.05)
+
+    display_order = ["Deterministic RICA²", "RICA² + CoRe-style", "RICA² + TSA-style", "TrustDive"]
+    high = metrics.set_index("model").loc[display_order].reset_index()
+    y = np.arange(len(high))[::-1]
+    for yi, row in zip(y, high.itertuples(index=False)):
+        color = method_colors[row.model]
+        size = 8 if row.model == "TrustDive" else 6
+        ax_c.plot(row.high_disagreement_mae, yi, "o", color=color, ms=size, zorder=3)
+        ax_c.text(row.high_disagreement_mae + 0.045, yi, f"{row.high_disagreement_mae:.3f}", va="center", ha="left", color=color, fontweight="bold" if row.model == "TrustDive" else "normal", fontsize=8)
+    ax_c.set_yticks(y, [short[name] for name in high.model])
+    ax_c.set_xlim(7.30, 8.65)
+    ax_c.set_xlabel("MAE on high-disagreement dives ($n$=94)")
+    ax_c.grid(axis="x", color="#E6EBEF", lw=0.7)
+    ax_c.set_axisbelow(True)
+    _panel(ax_c, "C", x=-0.24, y=1.05)
     return _save(fig, "Figure2_scoring_performance")
 
 
@@ -706,95 +754,113 @@ def render_figure3() -> dict:
     _configure()
     data = _load_data()
     cases = _case_rows().query("case_type in ['typical_accurate','high_disagreement_gain']")
-    fig = plt.figure(figsize=(180 * MM, 140 * MM))
-    fig.subplots_adjust(left=0.035, right=0.985, top=0.975, bottom=0.035)
-    outer = fig.add_gridspec(2, 1, hspace=0.14)
+    fig = plt.figure(figsize=(180 * MM, 150 * MM))
+    fig.subplots_adjust(left=0.035, right=0.985, top=0.965, bottom=0.035)
+    outer = fig.add_gridspec(2, 1, hspace=0.20)
+    fig.text(0.012, 0.982, "(A)", ha="left", va="top", fontsize=9.5, fontweight="bold")
     with ZipFrameStore(Paths().trimmed_zip) as store:
         for row_index, case in enumerate(cases.itertuples(index=False)):
             edge = COLORS["gain"] if case.case_type in {"typical_accurate", "high_disagreement_gain"} else COLORS["failure"]
             row_grid = outer[row_index].subgridspec(
-                2,
-                5,
-                height_ratios=[1.70, 0.78],
-                width_ratios=[1.16, 1.08, 1.08, 1.08, 1.10],
-                hspace=0.06,
-                wspace=0.08,
+                3,
+                4,
+                height_ratios=[0.28, 1.62, 0.76],
+                width_ratios=[1.32, 1.32, 1.32, 1.02],
+                hspace=0.07,
+                wspace=0.09,
             )
-            ax_text = fig.add_subplot(row_grid[:, 0])
-            ax_text.axis("off")
+            ax_header = fig.add_subplot(row_grid[0, :])
+            ax_header.axis("off")
             display_label = {
                 "typical_accurate": "Typical accurate",
-                "high_disagreement_gain": "High-disagreement\nimprovement",
+                "high_disagreement_gain": "High-disagreement improvement",
             }[case.case_type]
-            ax_text.text(0, 0.96, display_label, fontweight="bold", color=edge, va="top", fontsize=8.5, linespacing=1.05)
-            direction = "reduced" if case.error_gain >= 0 else "increased"
-            score_y = [0.67, 0.54, 0.41]
-            for y_position, score_label, score_value in zip(
-                score_y,
-                ["Official", "RICA²", "TrustDive"],
-                [case.official_score, case.teacher_score, case.trustdive_score],
-            ):
-                ax_text.text(0, y_position, score_label, va="top", fontsize=8)
-                ax_text.text(0.98, y_position, f"{score_value:.1f}", va="top", ha="right", fontsize=8, family="monospace")
-            ax_text.text(0, 0.18, f"|error| {direction}\nby {abs(case.error_gain):.1f} points", color=edge, va="bottom", fontsize=8, fontweight="bold")
-            if row_index == 0:
-                _panel(ax_text, "A", x=-0.10, y=1.02)
+            direction = "lower" if case.error_gain >= 0 else "higher"
+            ax_header.text(0.0, 0.52, display_label, fontweight="bold", color=edge, va="center", fontsize=8.5)
+            ax_header.text(
+                0.28,
+                0.52,
+                f"Official  {case.official_score:.1f}     RICA²  {case.teacher_score:.1f}     TrustDive  {case.trustdive_score:.1f}",
+                va="center",
+                fontsize=8,
+            )
+            ax_header.text(
+                1.0,
+                0.52,
+                f"|error| {direction} by {abs(case.error_gain):.1f}",
+                color=edge,
+                va="center",
+                ha="right",
+                fontsize=8,
+                fontweight="bold",
+            )
+            ax_header.axhline(0.02, color=COLORS["light"], lw=0.9, clip_on=False)
             q_meta = data.frame.iloc[int(case.query_index)]
             r_meta = data.frame.iloc[int(case.reference_index)]
             for phase_index, phase in enumerate(PHASES):
-                q_ax = fig.add_subplot(row_grid[0, 1 + phase_index])
+                q_ax = fig.add_subplot(row_grid[1, phase_index])
                 query_image = _motion_focused_phase_frame(
                     store,
                     q_meta,
                     data.phase_labels[int(case.query_index)],
                     phase,
-                    size=(300, 205),
+                    size=(430, 270),
                 )
                 _show_image(q_ax, query_image, PHASE_COLORS[phase_index], linewidth=2.0)
                 q_ax.set_title(phase.capitalize(), color=PHASE_COLORS[phase_index], fontweight="bold", pad=2)
                 if phase_index == 0:
-                    q_ax.text(0.02, 0.96, "QUERY", transform=q_ax.transAxes, va="top", ha="left", color="white", fontweight="bold", fontsize=8, bbox={"facecolor": "black", "alpha": 0.62, "pad": 1.5, "edgecolor": "none"})
+                    q_ax.text(0.02, 0.96, "QUERY", transform=q_ax.transAxes, va="top", ha="left", color="white", fontweight="bold", fontsize=8, bbox={"facecolor": "black", "alpha": 0.70, "pad": 1.5, "edgecolor": "none"})
 
-                r_ax = fig.add_subplot(row_grid[1, 1 + phase_index])
+                r_ax = fig.add_subplot(row_grid[2, phase_index])
                 reference_image = _motion_focused_phase_frame(
                     store,
                     r_meta,
                     data.phase_labels[int(case.reference_index)],
                     phase,
-                    size=(300, 118),
+                    size=(430, 132),
                 )
                 _show_image(r_ax, reference_image, PHASE_COLORS[phase_index], linewidth=1.5)
                 if phase_index == 0:
-                    r_ax.text(0.02, 0.94, "REFERENCE", transform=r_ax.transAxes, va="top", ha="left", color="white", fontweight="bold", fontsize=8, bbox={"facecolor": "black", "alpha": 0.62, "pad": 1.3, "edgecolor": "none"})
-            ax_bar = fig.add_subplot(row_grid[:, 4])
+                    r_ax.text(0.02, 0.92, "REFERENCE", transform=r_ax.transAxes, va="top", ha="left", color="white", fontweight="bold", fontsize=8, bbox={"facecolor": "black", "alpha": 0.70, "pad": 1.3, "edgecolor": "none"})
+            ax_bar = fig.add_subplot(row_grid[1:, 3])
             values = np.asarray([case.phi_takeoff, case.phi_flight, case.phi_entry])
-            x_positions = np.arange(3)
-            ax_bar.bar(x_positions, values, color=PHASE_COLORS, width=0.62)
-            ax_bar.axhline(0, color=COLORS["ink"], lw=1.0)
-            ax_bar.set_xticks(x_positions, ["T", "F", "E"])
-            ax_bar.tick_params(axis="x", labelsize=8, pad=2)
-            limit = max(0.18, float(np.max(np.abs(values))) * 1.70)
-            ax_bar.set_ylim(-limit, limit)
+            y_positions = np.arange(3)
+            ax_bar.barh(y_positions, values, color=PHASE_COLORS, height=0.56)
+            ax_bar.axvline(0, color=COLORS["ink"], lw=1.0)
+            ax_bar.set_yticks(y_positions, [phase.capitalize() for phase in PHASES])
+            ax_bar.invert_yaxis()
+            for tick, phase in zip(ax_bar.get_yticklabels(), PHASES):
+                tick.set_fontweight("bold" if phase == case.top_phase else "normal")
+            limit = max(0.18, float(np.max(np.abs(values))) * 1.48)
+            ax_bar.set_xlim(-limit, limit)
+            ax_bar.set_xlabel("Contribution (Q points)")
+            ax_bar.set_title("Phase effect", loc="left", fontweight="bold", fontsize=8.5, pad=5)
             for idx, value in enumerate(values):
-                offset = limit * 0.055
-                ax_bar.text(idx, value + (offset if value >= 0 else -offset), f"{value:+.2f}", va="bottom" if value >= 0 else "top", ha="center", fontsize=8, color=COLORS["ink"])
-            ax_bar.text(0.03, 0.97, f"Highest: {case.top_phase}", transform=ax_bar.transAxes, va="top", ha="left", fontsize=8, fontweight="bold")
+                offset = limit * 0.045
+                ax_bar.text(
+                    value + (offset if value >= 0 else -offset),
+                    idx,
+                    f"{value:+.2f}",
+                    va="center",
+                    ha="left" if value >= 0 else "right",
+                    fontsize=8,
+                    color=COLORS["ink"],
+                )
     return _save(fig, "Figure3_phase_case_matrix")
 
 
 def _coalition_tile(store: ZipFrameStore, q_meta: pd.Series, r_meta: pd.Series, q_labels: np.ndarray, r_labels: np.ndarray, mask: int) -> Image.Image:
-    size = (150, 104)
-    gap = 4
-    canvas = Image.new("RGB", (size[0] * 3 + gap * 2, size[1] + 20), "white")
+    size = (230, 100)
+    gap = 6
+    canvas = Image.new("RGB", (size[0] * 3 + gap * 2, size[1]), "white")
     draw = ImageDraw.Draw(canvas)
     for phase_index, phase in enumerate(PHASES):
         use_query = bool(mask & (1 << phase_index))
         meta, labels = (q_meta, q_labels) if use_query else (r_meta, r_labels)
         image = _phase_center(store, meta, labels, phase, size=size)
         x = phase_index * (size[0] + gap)
-        canvas.paste(image, (x, 20))
-        draw.rectangle((x, 20, x + size[0] - 1, 20 + size[1] - 1), outline=COLORS[phase], width=4)
-        draw.text((x + 5, 3), f"{phase[0].upper()}:{'Q' if use_query else 'R'}", fill=COLORS[phase])
+        canvas.paste(image, (x, 0))
+        draw.rectangle((x, 0, x + size[0] - 1, size[1] - 1), outline=COLORS[phase], width=5)
     return canvas
 
 
@@ -808,22 +874,29 @@ def render_figure4() -> dict:
     case = cases[cases.case_type == "high_disagreement_gain"].iloc[0]
     hero = pd.read_csv(SOURCE_ROOT / "Figure4_hero_case.csv").iloc[0]
     video = pd.read_csv(SOURCE_ROOT / "Figure4_video_level.csv")
+    intervention_summary = pd.read_csv(SOURCE_ROOT / "Figure4_intervention_summary.csv").set_index("comparison")
     confusion = pd.read_csv(SOURCE_ROOT / "Figure4_phase_confusion.csv").set_index("attributed_phase").loc[PHASES, PHASES]
-    fig = plt.figure(figsize=(180 * MM, 150 * MM), layout="constrained")
-    outer = fig.add_gridspec(3, 4, height_ratios=[0.22, 0.22, 1.35], hspace=0.14, wspace=0.25)
+    fig = plt.figure(figsize=(180 * MM, 170 * MM))
+    fig.subplots_adjust(left=0.075, right=0.985, top=0.945, bottom=0.075)
+    outer = fig.add_gridspec(2, 1, height_ratios=[1.08, 1.00], hspace=0.23)
+    coalition_grid = outer[0].subgridspec(4, 2, hspace=0.34, wspace=0.10)
+    quantitative_grid = outer[1].subgridspec(1, 3, width_ratios=[0.88, 1.90, 1.05], wspace=0.42)
+    fig.text(0.075, 0.976, "Feature-level phase coalitions", ha="left", va="top", fontsize=8.5, fontweight="bold")
+    fig.text(0.985, 0.976, "Phase order: Takeoff / Flight / Entry     Q = query, R = reference", ha="right", va="top", fontsize=8)
     q_meta = data.frame.iloc[int(case.query_index)]
     r_meta = data.frame.iloc[int(case.reference_index)]
     with ZipFrameStore(Paths().trimmed_zip) as store:
         for mask in range(8):
-            ax = fig.add_subplot(outer[mask // 4, mask % 4])
+            ax = fig.add_subplot(coalition_grid[mask // 2, mask % 2])
             tile = _coalition_tile(store, q_meta, r_meta, data.phase_labels[int(case.query_index)], data.phase_labels[int(case.reference_index)], mask)
             _show_image(ax, tile, COLORS["light"], 0.8)
-            ax.set_title(f"{mask:03b}   F = {hero[f'coalition_{mask}']:.2f}", fontsize=8, pad=2)
+            sources = " / ".join("Q" if mask & (1 << phase_index) else "R" for phase_index in range(3))
+            ax.set_title(f"{sources}     scorer output = {hero[f'coalition_{mask}']:.2f}", fontsize=8, pad=2)
             if mask == 0:
-                _panel(ax, "A", x=-0.14, y=1.10)
-    ax_b = fig.add_subplot(outer[2, 0])
+                _panel(ax, "A", x=-0.07, y=1.35)
+    ax_b = fig.add_subplot(quantitative_grid[0, 0])
     components = [hero.reference_baseline, hero.phi_takeoff, hero.phi_flight, hero.phi_entry]
-    labels = ["Baseline", "Takeoff", "Flight", "Entry"]
+    labels = ["Base", "T", "F", "E"]
     colors = [COLORS["light"], *PHASE_COLORS]
     running = float(components[0])
     ax_b.scatter([0], [running], s=45, color=COLORS["teacher"], zorder=4)
@@ -837,13 +910,13 @@ def render_figure4() -> dict:
         running = next_level
         levels.append(running)
     ax_b.axhline(hero.predicted_quality, color=COLORS["ink"], ls="--", lw=1.2)
-    ax_b.set_xticks(range(4), labels, rotation=28, ha="right")
-    ax_b.set_ylabel("Execution-quality score")
+    ax_b.set_xticks(range(4), labels)
+    ax_b.set_ylabel("Execution quality")
     margin = max(0.18, (max(levels) - min(levels)) * 0.28)
     ax_b.set_ylim(min(levels) - margin, max(levels) + margin)
-    ax_b.set_title("Exact additive reconstruction", loc="left", fontweight="bold", fontsize=8, pad=5)
-    _panel(ax_b, "B", y=1.12)
-    ax_c = fig.add_subplot(outer[2, 1:3])
+    ax_b.set_title("Exact reconstruction", loc="left", fontweight="bold", fontsize=8.5, pad=5)
+    _panel(ax_b, "B", x=-0.18, y=1.12)
+    ax_c = fig.add_subplot(quantitative_grid[0, 1])
     rng = np.random.default_rng(SEED)
     values = [
         video.mean_nonselected_effect.to_numpy(),
@@ -862,17 +935,24 @@ def render_figure4() -> dict:
         ax_c.plot([pos - 0.18, pos + 0.18], [np.median(vals)] * 2, color=COLORS["ink"], lw=2.2)
     delta_mean = float(np.median(video.targeted_effect - video.mean_nonselected_effect))
     delta_strong = float(np.median(video.targeted_effect - video.strongest_nonselected_effect))
-    ax_c.set_xticks(positions, ["Mean of\nnonselected", "Strongest\nnonselected", "Highest\nattribution"])
-    ax_c.set_ylabel("Absolute replacement effect")
-    ax_c.set_title(
-        f"Highest minus mean = {delta_mean:.3f}; minus strongest = {delta_strong:.3f}",
-        loc="left",
-        fontweight="bold",
+    mean_row = intervention_summary.loc["targeted_minus_mean_nonselected"]
+    strong_row = intervention_summary.loc["targeted_minus_strongest_nonselected"]
+    ax_c.set_xticks(positions, ["Mean of\nother two", "Largest of\nother two", "Top-attributed\nphase"])
+    ax_c.set_ylabel("Absolute score change")
+    ax_c.set_title("Intervention fidelity across 735 videos", loc="left", fontweight="bold", fontsize=8.5, pad=5)
+    ax_c.text(
+        0.03,
+        0.96,
+        f"vs mean: +{delta_mean:.3f} [{mean_row.ci_lower:.3f}, {mean_row.ci_upper:.3f}]\n"
+        f"vs largest: +{delta_strong:.3f} [{strong_row.ci_lower:.3f}, {strong_row.ci_upper:.3f}]",
+        transform=ax_c.transAxes,
+        ha="left",
+        va="top",
         fontsize=8,
-        pad=5,
+        bbox={"facecolor": "white", "alpha": 0.90, "edgecolor": COLORS["light"], "pad": 2.0},
     )
     _panel(ax_c, "C", x=-0.08, y=1.12)
-    ax_d = fig.add_subplot(outer[2, 3])
+    ax_d = fig.add_subplot(quantitative_grid[0, 2])
     cmap = LinearSegmentedColormap.from_list("trust", ["#F4F7F9", COLORS["ours"]])
     matrix = confusion.to_numpy(dtype=int)
     ax_d.imshow(matrix, cmap=cmap, aspect="auto")
@@ -880,12 +960,12 @@ def render_figure4() -> dict:
     for row in range(3):
         for col in range(3):
             ax_d.text(col, row, str(matrix[row, col]), ha="center", va="center", color="white" if matrix[row, col] > threshold else COLORS["ink"], fontweight="bold")
-    ax_d.set_xticks(range(3), ["Takeoff", "Flight", "Entry"], rotation=35, ha="right")
+    ax_d.set_xticks(range(3), ["Takeoff", "Flight", "Entry"])
     ax_d.set_yticks(range(3), ["Takeoff", "Flight", "Entry"])
     ax_d.set_xlabel("Largest intervention")
     ax_d.set_ylabel("Highest attribution")
-    ax_d.set_title("Match = 90.61%", loc="left", fontweight="bold", fontsize=8, pad=5)
-    _panel(ax_d, "D", y=1.12)
+    ax_d.set_title("666/735 matched (90.61%)", loc="left", fontweight="bold", fontsize=8.5, pad=5)
+    _panel(ax_d, "D", x=-0.16, y=1.12)
     return _save(fig, "Figure4_counterfactual_fidelity")
 
 
@@ -927,6 +1007,16 @@ def render_figure5() -> dict:
         body.set_edgecolor(color)
     for pos, values in enumerate(distributions):
         ax_b.boxplot(values, positions=[pos], widths=0.20, showfliers=False, patch_artist=True, boxprops={"facecolor": "white", "edgecolor": COLORS["ink"]}, medianprops={"color": COLORS["ink"], "linewidth": 1.8}, whiskerprops={"color": COLORS["ink"]}, capprops={"color": COLORS["ink"]})
+        median_value = float(np.median(values))
+        ax_b.text(
+            pos,
+            1.015,
+            f"median {median_value:.2f}",
+            ha="center",
+            va="bottom",
+            fontsize=8.0,
+            color=COLORS["ink"],
+        )
     ax_b.set_xticks([0, 1], ["Boundary\nshift", "Alternate\nreferences"])
     ax_b.set_ylabel("Contribution-vector cosine")
     ax_b.set_ylim(-1.02, 1.04)
@@ -941,7 +1031,7 @@ def render_figure5() -> dict:
     ax_c.set_ylabel("Highest-phase agreement")
     ax_c.set_ylim(0, 1.02)
     for idx, row in enumerate(phase_stats.itertuples(index=False)):
-        ax_c.text(idx, row.mean + 0.08, f"$n$={row.n}", ha="center", fontsize=8)
+        ax_c.text(idx, row.mean + 0.065, f"{row.mean:.2f}\n$n$={row.n}", ha="center", fontsize=8.0)
     _panel(ax_c, "C")
     data_frame = data.frame.set_index("clip_uid")
     fig.text(0.015, 0.435, "(D)  Boundary-sensitive case", ha="left", va="bottom", fontsize=9.2, fontweight="bold", color=COLORS["ink"])
@@ -954,7 +1044,11 @@ def render_figure5() -> dict:
             labels = data.phase_labels[int(case.query_index)]
             for phase_index, phase in enumerate(PHASES):
                 ax = fig.add_subplot(sub[0, phase_index])
-                _show_image(ax, _phase_tile(store, meta, labels, phase, width=90, height=84), PHASE_COLORS[phase_index])
+                _show_image(
+                    ax,
+                    _motion_focused_phase_frame(store, meta, labels, phase, size=(170, 120)),
+                    PHASE_COLORS[phase_index],
+                )
                 ax.set_title(phase.title(), color=PHASE_COLORS[phase_index], fontweight="bold", fontsize=8)
             ax = fig.add_subplot(sub[0, 3])
             subset = perturb[perturb.case_type == case_type]
@@ -1209,10 +1303,10 @@ def render_figure3_variant_supplement() -> dict:
 
 CAPTIONS = {
     "Figure1": "Overview of TrustDive. A deterministic RICA² scoring foundation undergoes bounded latent calibration, while five same-action references from different event families define a fixed comparison neighborhood. The final deployed scorer is evaluated on eight feature-level query/reference phase coalitions to obtain exact model-attributed contributions for takeoff, flight, and entry. Example frames visualize the returned evidence; quantitative results are reported in subsequent figures.",
-    "Figure2": "Latent-calibrated score assessment. (A,B) Official and predicted total scores for RICA² and the prespecified TrustDive model on all 749 official-test videos; dashed lines indicate identity. (C) Video-level reduction in absolute error, with all videos and the high-disagreement subset shown on the same scale; positive values indicate lower TrustDive error. Points denote videos and horizontal lines denote medians. (D) Mean MAE reduction with 95% event-family-clustered bootstrap intervals. High disagreement was defined by the frozen fit-set threshold and does not denote abnormal judging.",
-    "Figure3": "Mechanically selected real-video examples. The two full-width case cards show a typical accurate performance and a high-disagreement performance for which the calibrated scorer reduced score error. Enlarged query images show the midpoint of each predicted takeoff, flight, and entry phase after one deterministic sequence-level crop; the smaller lower row shows the nearest displayed legal training reference. Right panels report exact model-attributed phase contributions in execution-quality points. Crop centers were derived from movement across the frozen 25%, 50%, and 75% phase frames, without pose inference or local retouching. Cases were selected by prespecified performance strata rather than visual appeal.",
-    "Figure4": "Counterfactual fidelity of phase evidence. (A) All eight feature-level coalitions for one mechanically selected high-disagreement case; Q and R indicate phases from the query and reference. These tiles illustrate feature provenance and are not generated videos. (B) Exact Shapley reconstruction of the final execution-quality prediction. (C) Absolute score effect of the highest-contribution phase compared with the mean and strongest of the two nonselected phases across 735 reference-supported videos. (D) Agreement between the highest attributed phase and the phase with the largest direct intervention effect.",
-    "Figure5": "Distribution and stability boundaries of phase evidence. (A) Highest-contribution phase across 735 reference-supported test videos. (B) Contribution-vector cosine similarity after one-token boundary shifts and alternate-reference replacement. (C) Highest-phase agreement under boundary shifts, stratified by the original highest-contribution phase; points and 95% clustered bootstrap intervals are shown. (D,E) Mechanically selected boundary-sensitive and reference-sensitive cases with deterministic perturbation results. These analyses characterize model-evidence stability, not human judging processes.",
+    "Figure2": "Scoring performance under the shared frozen-feature protocol. (A) Mean absolute error and Spearman correlation on all 749 official-test videos. TrustDive and TSA-style occupy complementary positions on the observed performance frontier. (B) Paired TrustDive-minus-baseline MAE differences with 95% event-family-clustered bootstrap intervals from 10,000 draws; negative values favor TrustDive. (C) Mean absolute error for the 94 test videos above the fit-defined seven-judge disagreement threshold. CoRe-style and TSA-style are literature-grounded matched-feature implementations rather than official end-to-end reproductions.",
+    "Figure3": "Inspectable phase evidence in mechanically selected real-video examples. The two full-width case cards show a typical accurate performance and a high-disagreement performance for which the calibrated scorer reduced score error. Each card separates enlarged query frames, the nearest displayed legal training reference, and signed model-attributed phase contributions in execution-quality points. Images show the midpoint of each predicted takeoff, flight, and entry phase after one deterministic sequence-level crop; crop centers were derived from movement across the frozen 25%, 50%, and 75% phase frames, without pose inference or local retouching. These examples illustrate the evidence interface; aggregate fidelity and stability are evaluated in Figures 4 and 5.",
+    "Figure4": "Population-level fidelity of counterfactual phase evidence. (A) All eight feature-level coalitions for one mechanically selected high-disagreement case; Q and R indicate phases from the query and reference. The frames show feature provenance and are not generated videos. (B) Exact Shapley reconstruction verifies additive accounting for the final execution-quality prediction. (C) Across 735 reference-supported videos, the top-attributed phase produced a larger absolute score change than the mean or largest effect of the two other phases; brackets show 95% event-family-clustered confidence intervals. (D) The top-attributed phase matched the phase with the largest direct intervention effect in 666 of 735 videos (90.61%). Panels C and D provide the empirical intervention-fidelity evidence.",
+    "Figure5": "Distribution and stability boundaries of phase evidence. (A) Highest-contribution phase across 735 reference-supported test videos. (B) Contribution-vector cosine similarity after one-token boundary shifts and alternate-reference replacement; labels show medians. (C) Highest-phase agreement under boundary shifts, stratified by the original highest-contribution phase; points and 95% clustered bootstrap intervals are shown. (D,E) Mechanically selected boundary-sensitive and reference-sensitive cases with enlarged, deterministically motion-centered mid-phase frames and perturbation results. These analyses characterize model-evidence stability, not human judging processes.",
     "FigureS1": "FineDiving dataset overview. (A) Number of videos in each action group. (B) Distribution of execution-quality scores by action group. (C) Number of videos with three, five, or seven available judge scores.",
     "FigureS2": "Component scoring ablation. (A) Spearman correlation and (B) mean absolute error for the deterministic RICA² foundation, score-only calibration, latent-only Ridge, reference-only Ridge, full latent-reference Ridge, and the prespecified risk-weighted TrustDive model. Latent calibration explains most of the error reduction; reference statistics add only a small incremental scoring effect, and risk weighting does not improve the full ordinary Ridge model.",
     "FigureS3": "Reference coverage in the official test set. (A) Number of legal same-action, cross-family training references. (B) Reference distance and score dispersion; 14 reference-sparse videos had fewer than three legal references and therefore fell back to deterministic RICA² without reference-conditioned phase evidence.",
@@ -1222,10 +1316,10 @@ CAPTIONS = {
 
 ALT_TEXT = {
     "Figure1": "Workflow diagram with real takeoff, flight, and entry frames, five reference thumbnails, a frozen RICA² scoring block, a reference adapter, eight phase coalitions, and a phase-evidence output card.",
-    "Figure2": "A two-by-two grid shows matched score scatterplots above a full-size video-level error-reduction distribution and effect-size forest plot. Positive reductions indicate lower TrustDive error, with the largest mean reduction in high-disagreement videos.",
-    "Figure3": "Two full-width case cards show enlarged real query takeoff, flight, and entry frames, a smaller matched training-reference strip, score estimates, and phase-contribution bars for a typical accurate case and a high-disagreement improvement case.",
-    "Figure4": "Eight query-reference phase combinations are paired with a Shapley waterfall, intervention-effect distributions, and a phase-matching confusion matrix.",
-    "Figure5": "Phase-frequency bars, stability distributions, boundary-agreement estimates, and two real-video failure-boundary cases show that phase evidence is useful but not invariant.",
+    "Figure2": "A large MAE-versus-Spearman performance plane compares four frozen-feature scoring methods. Two smaller panels show paired MAE differences and high-disagreement MAE; TrustDive has the lowest absolute error while TSA-style has the highest rank correlation.",
+    "Figure3": "Two spacious case cards show enlarged query and reference frames for takeoff, flight, and entry, followed by horizontal signed-contribution charts and compact score summaries.",
+    "Figure4": "Eight readable query-reference phase combinations sit above an exact Shapley reconstruction, a 735-video intervention-effect distribution, and a three-by-three attribution-intervention agreement matrix.",
+    "Figure5": "Phase-frequency bars, directly labeled stability distributions, boundary-agreement estimates, and two real-video failure-boundary cases with enlarged, motion-centered mid-phase frames show that phase evidence is useful but not invariant.",
     "FigureS1": "Three panels summarize FineDiving action-group counts, execution-quality distributions, and the numbers of videos with three, five, or seven judge scores.",
     "FigureS2": "Horizontal bars compare Spearman correlation and mean absolute error across six component scoring baselines and ablations.",
     "FigureS3": "A reference-count bar chart and distance-versus-dispersion scatterplot identify 14 reference-sparse official-test videos.",
@@ -1287,9 +1381,9 @@ def qa() -> dict:
     ]
     expected_main_pixels = {
         "Figure1_method_overview": (4251, 2480),
-        "Figure2_scoring_performance": (4251, 3024),
-        "Figure3_phase_case_matrix": (4251, 3307),
-        "Figure4_counterfactual_fidelity": (4251, 3543),
+        "Figure2_scoring_performance": (4251, 2480),
+        "Figure3_phase_case_matrix": (4251, 3543),
+        "Figure4_counterfactual_fidelity": (4251, 4015),
         "Figure5_stability_boundaries": (4251, 3188),
     }
     grayscale_root = OUTPUT_ROOT / "qa_grayscale"
@@ -1352,3 +1446,5 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+

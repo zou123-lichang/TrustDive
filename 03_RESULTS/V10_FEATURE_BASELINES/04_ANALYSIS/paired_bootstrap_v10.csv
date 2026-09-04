@@ -1,0 +1,11 @@
+metric,difference_definition,estimate,ci_low,ci_high,iterations,baseline,subset
+mae,TrustDive minus matched-feature baseline,-0.015518004260498763,-0.07814316303766829,0.03862198835395153,10000,core_style,overall
+spearman,TrustDive minus matched-feature baseline,0.00029842560984227884,-0.002221191530072017,0.0029787199649520366,10000,core_style,overall
+rmse,TrustDive minus matched-feature baseline,-0.022569367483146863,-0.1083515437463122,0.051383948846002774,10000,core_style,overall
+mae,TrustDive minus matched-feature baseline,-0.06523696456106354,-0.24728647780061097,0.09076752030130121,10000,core_style,high_disagreement
+mae,TrustDive minus matched-feature baseline,-0.03563352370943296,-0.183825123018895,0.11792920074489147,10000,tsa_style,overall
+spearman,TrustDive minus matched-feature baseline,-0.0037918203330469247,-0.012218588620831083,0.004795443257803275,10000,tsa_style,overall
+rmse,TrustDive minus matched-feature baseline,0.04015051982816509,-0.18088123236821302,0.24632292666126018,10000,tsa_style,overall
+mae,TrustDive minus matched-feature baseline,-0.3191536406740223,-0.8409498879225291,0.16141642023732838,10000,tsa_style,high_disagreement
+
+

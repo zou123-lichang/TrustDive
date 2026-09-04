@@ -1,0 +1,98 @@
+material_passport: experiment-agent / implementation / 2026-09-04 / UNVERIFIED / feature_baselines_v10
+title: TrustDive v10 matched-feature literature-grounded baseline comparison
+state:
+  frozen: true
+  frozen_at: '2026-09-04T10:44:59.870349+00:00'
+  official_test_unlocked: true
+  selected_models_sha256: 95974018a7a6d0eb4825ba0636da6f6f4870cafe1a7b562ef4b16b91edd97ee4
+  smoke_test_sha256: 937524ce37de9775aa95f4b1166e4c642a39060c8d054df423a1eb9fc54b1768
+  contract_sha256: ff6380f3a4253269159a5df7832badf1c3b94bab1075ab10f3f5b78045137da3
+read_only_anchor:
+  repository_commit: 6c22f6ae968465124fd5bbf2c5379df21b9abc92
+  input_hashes:
+    03_RESULTS/V6_EXACT_REVIEW/01_LATENTS/teacher_latents_v6.npz: 7D33BDCFB974D0E7015485DE7F5AD0075036A8E130B7ABD6E32431FD1C804B10
+    03_RESULTS/V5_APPLIED_CFPD/01_REFERENCES/teacher_sequences_v5.npz: CAD7830F87C12096B5EAAB57FD4F7990E8D23BB7FEE2F4820B5FE91306E1A1B5
+    03_RESULTS/V2_DISAGREEMENT/01_FEATURES/phase_predictions_videomae_official_v2.npz: 34441CC5714AD20C1CA9E204002F95AC36EAF7216564E00B73E8CC75187FF385
+    03_RESULTS/V7_RISK_TASK/02_BASELINES/reference_map_development_v7.npz: A6F2089457BA9847A3ED7EEF82FDAD874F8DDD4AFE6C20E6FD1C0E72638A8B0A
+    03_RESULTS/V7_RISK_TASK/02_BASELINES/reference_map_final_v7.npz: A21F38C988FA645C02302FC09B3DA4333C5382E558BFAAF7B47FE801674CD1D2
+    03_RESULTS/V7_RISK_TASK/03_SCORE/predictions_v7.parquet: 8BFD401E4EDF6A8D36F73E1D687C1FB702517CC33E5D51BE99CB68839CDAE043
+    03_RESULTS/V7_RISK_TASK/01_RISK_TASK/risk_task_manifest_v7.parquet: B6A5AFD65AD0F9EFC1EC58A2B66788022E94DB6356FEEA58FD9BD9235A11D8C3
+  manuscript_hashes:
+    04_MANUSCRIPT/01_FRONTIERS_PSYCHOLOGY_WORKING/main.tex: 952F5E21601928EDE386FCAAC162101002F60A8B74C280B4B6591160C45DE74F
+    04_MANUSCRIPT/01_FRONTIERS_PSYCHOLOGY_WORKING/references.bib: C41BA7CFC8AA6CFFDF49BF9362E9D2F8994D3444711B3B78C48C1C79703B1648
+data:
+  samples: 3000
+  fit: 1559
+  validation: 369
+  calibration: 323
+  official_test: 749
+  seven_judge_test: 325
+  high_disagreement_test: 94
+  references: 5
+  minimum_references: 3
+  global_latent_shape:
+  - 3000
+  - 256
+  temporal_sequence_shape:
+  - 3000
+  - 9
+  - 1024
+  predicted_phase_shape:
+  - 3000
+  - 8
+models:
+  names:
+  - core_style
+  - tsa_style
+  hidden_dimensions:
+  - 64
+  - 128
+  learning_rates:
+  - 0.0003
+  - 0.001
+  dropout: 0.1
+  maximum_epochs: 100
+  early_stopping_patience: 15
+  batch_size: 64
+  tsa_attention_heads: 2
+  maximum_validation_spearman_drop: 0.01
+  simple_model_mae_tolerance: 0.02
+  residual_clip_quantiles:
+  - 0.01
+  - 0.99
+  pilot_seeds:
+  - 20260904
+  - 20260905
+  - 20260906
+  final_seeds:
+  - 20260904
+  - 20260905
+  - 20260906
+statistics:
+  primary_metric: mae
+  secondary_metrics:
+  - spearman
+  - rmse
+  - relative_l2
+  cluster_bootstrap_iterations: 10000
+  bootstrap_seed: 20260904
+compute:
+  gpu_budget_hours: 2.0
+  smoke_test_rows: 100
+  smoke_estimated_hours: 0.05
+  pilot_estimated_hours_per_model: 0.45
+  final_estimated_hours: 0.55
+  maximum_vram_mib: 11500
+reporting:
+  method_labels:
+    core_style: RICA2 + CoRe-style reference adapter
+    tsa_style: RICA2 + TSA-style phase adapter
+  exact_reproduction: false
+  allowed_description: literature-grounded matched-feature baseline
+  prohibited_descriptions:
+  - official CoRe reproduction
+  - official TSA reproduction
+  - state of the art
+  - comprehensive superiority before matched results are known
+
+

@@ -1,0 +1,26 @@
+{
+  "checks": {
+    "finite_predictions": true,
+    "peak_vram_within_limit": true,
+    "projected_gpu_hours_within_budget": true
+  },
+  "elapsed_seconds": 3.2464010000694543,
+  "material_passport": "experiment-agent / smoke-test / 2026-09-04 / VERIFIED / feature_baselines_v10",
+  "models": [
+    {
+      "finite_predictions": true,
+      "model": "core_style",
+      "parameter_count": 65729
+    },
+    {
+      "finite_predictions": true,
+      "model": "tsa_style",
+      "parameter_count": 98817
+    }
+  ],
+  "peak_vram_mib": 30,
+  "projected_full_gpu_hours": 0.6763335416811364,
+  "rows": 100,
+  "status": "PASS"
+}
+

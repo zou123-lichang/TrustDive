@@ -1,0 +1,44 @@
+{
+  "checkpoints": [
+    {
+      "path": "D:\\code\\papers\\TrustDive_CURRENT\\runs\\v10_feature_baselines\\checkpoints\\final_core_style_s20260904.pt",
+      "sha256": "2dda24d4de6337db7cee112cf813a332a074298366d66e05db0ae7f4ed691c5c"
+    },
+    {
+      "path": "D:\\code\\papers\\TrustDive_CURRENT\\runs\\v10_feature_baselines\\checkpoints\\final_core_style_s20260905.pt",
+      "sha256": "3d63338a8dd69102972fa91fd049c272eb16e24d3f0ea2521d3956408ecbab09"
+    },
+    {
+      "path": "D:\\code\\papers\\TrustDive_CURRENT\\runs\\v10_feature_baselines\\checkpoints\\final_core_style_s20260906.pt",
+      "sha256": "7bc2ba880444817b1d02c252aa25450426f740fcc87ffbf840d025c01c3ccf5e"
+    },
+    {
+      "path": "D:\\code\\papers\\TrustDive_CURRENT\\runs\\v10_feature_baselines\\checkpoints\\final_tsa_style_s20260904.pt",
+      "sha256": "7ef86eab53fc4941e48c4487f6ee82e84aa95ecdacef55106a16760ccf154f58"
+    },
+    {
+      "path": "D:\\code\\papers\\TrustDive_CURRENT\\runs\\v10_feature_baselines\\checkpoints\\final_tsa_style_s20260905.pt",
+      "sha256": "d8b46dafe54411bf73655fb98f13c292e86e18c73ab0667bf49fb8354c71078b"
+    },
+    {
+      "path": "D:\\code\\papers\\TrustDive_CURRENT\\runs\\v10_feature_baselines\\checkpoints\\final_tsa_style_s20260906.pt",
+      "sha256": "3e5a48e0181dbaa35ea26035c686ac12ab5db8c3a2c5dfe68af3110f30fb0ff1"
+    }
+  ],
+  "material_passport": "experiment-agent / training / 2026-09-04 / VERIFIED_TEST / feature_baselines_v10",
+  "models": [
+    "core_style",
+    "tsa_style"
+  ],
+  "official_test_used_for_model_selection": false,
+  "predictions_sha256": "6d85c7372a33389d6bd6203c958959100976e9766d06fdab71f42127e3c20e4c",
+  "rows": 4494,
+  "seeds": [
+    20260904,
+    20260905,
+    20260906
+  ],
+  "status": "PASS",
+  "test_rows_per_model_seed": 749
+}
+

@@ -1,0 +1,32 @@
+{
+  "material_passport": "experiment-agent / training / 2026-09-04 / VERIFIED_VALIDATION / feature_baselines_v10",
+  "model": "core_style",
+  "official_test_used_for_selection": false,
+  "pilot_aggregate_sha256": "7fcb85e43ca95d64f5e7cf05e0d39fb5d0bf3b645ac646b12277d2101fa5ba53",
+  "pilot_trials_sha256": "fe94c909f4d0e69a91a648b1906d880b638820112a10db0e1dc4002c1ed2a54a",
+  "selected": {
+    "eligible": true,
+    "hidden": 64,
+    "learning_rate": 0.001,
+    "mae": 3.283193703693986,
+    "mae_sd": 0.023398601341158804,
+    "median_best_epoch": 7.0,
+    "model": "core_style",
+    "parameter_count": 65729,
+    "relative_l2": 0.29543142610355455,
+    "rmse": 4.500356496359813,
+    "spearman": 0.9584687116097242,
+    "spearman_sd": 0.0006909347629474726
+  },
+  "selection_rule": "Spearman drop <= 0.01, then validation MAE; within 0.02 points choose fewer parameters",
+  "status": "PASS",
+  "teacher_validation_metrics": {
+    "mae": 3.745530430450026,
+    "relative_l2": 0.3793998356027722,
+    "relative_l2_definition": "100 * mean(((prediction-target)/(max(target)-min(target)))^2)",
+    "relative_l2_variance_ratio_internal": 0.10392972387203604,
+    "rmse": 5.100102517517574,
+    "spearman": 0.9578037389816138
+  }
+}
+

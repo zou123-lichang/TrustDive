@@ -1,0 +1,31 @@
+{
+  "core_style": {
+    "eligible": true,
+    "hidden": 64,
+    "learning_rate": 0.001,
+    "mae": 3.283193703693986,
+    "mae_sd": 0.023398601341158804,
+    "median_best_epoch": 7.0,
+    "model": "core_style",
+    "parameter_count": 65729,
+    "relative_l2": 0.29543142610355455,
+    "rmse": 4.500356496359813,
+    "spearman": 0.9584687116097242,
+    "spearman_sd": 0.0006909347629474726
+  },
+  "tsa_style": {
+    "eligible": true,
+    "hidden": 128,
+    "learning_rate": 0.0003,
+    "mae": 3.2781721657264655,
+    "mae_sd": 0.037498292670743186,
+    "median_best_epoch": 2.0,
+    "model": "tsa_style",
+    "parameter_count": 263169,
+    "relative_l2": 0.2674624958966192,
+    "rmse": 4.282088664862631,
+    "spearman": 0.9615352529480844,
+    "spearman_sd": 0.000996779516594442
+  }
+}
+

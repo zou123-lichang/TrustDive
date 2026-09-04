@@ -1,0 +1,28 @@
+{
+  "advantage_by_baseline": {
+    "core_style": {
+      "trustdive_high_disagreement_mae_advantage_ci_below_zero": false,
+      "trustdive_higher_spearman": true,
+      "trustdive_lower_high_disagreement_mae": true,
+      "trustdive_lower_mae_point_estimate": true,
+      "trustdive_mae_advantage_ci_below_zero": false
+    },
+    "tsa_style": {
+      "trustdive_high_disagreement_mae_advantage_ci_below_zero": false,
+      "trustdive_higher_spearman": false,
+      "trustdive_lower_high_disagreement_mae": true,
+      "trustdive_lower_mae_point_estimate": true,
+      "trustdive_mae_advantage_ci_below_zero": false
+    }
+  },
+  "bootstrap_sha256": "6a857b20ce4ba842f4c2de5ddb67135b63f60e9caf84150fa812e92edc8e436e",
+  "comparison_sha256": "a4d9a0ae5c70164ee734aadf67d885c00d2ea5ffc0dca1bad46df7a8627a5438",
+  "decision": "METRIC_TRADEOFF",
+  "high_disagreement_rows": 94,
+  "manuscript_modified": false,
+  "material_passport": "experiment-agent / analysis / 2026-09-04 / ANALYZED / feature_baselines_v10",
+  "seed_metrics_sha256": "2263d61153361b3c2ba4b41cc49dd79fded0c9e210ed7dc23e8a273594711b8f",
+  "status": "PASS",
+  "test_rows": 749
+}
+

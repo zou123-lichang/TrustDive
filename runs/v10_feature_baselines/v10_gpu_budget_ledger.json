@@ -1,0 +1,60 @@
+{
+  "budget_hours": 2.0,
+  "entries": [
+    {
+      "command": "smoke-test",
+      "elapsed_seconds": 3.759651199914515,
+      "finished_at": "2026-09-04T10:37:44.031065+00:00",
+      "peak_vram_bytes": 37621760,
+      "started_at": "2026-09-04T10:37:40.264681+00:00",
+      "success": true,
+      "used_gpu": true
+    },
+    {
+      "command": "smoke-test",
+      "elapsed_seconds": 2.064059800002724,
+      "finished_at": "2026-09-04T10:38:49.989208+00:00",
+      "peak_vram_bytes": 21731840,
+      "started_at": "2026-09-04T10:38:47.913864+00:00",
+      "success": false,
+      "used_gpu": true
+    },
+    {
+      "command": "smoke-test",
+      "elapsed_seconds": 3.213941900059581,
+      "finished_at": "2026-09-04T10:41:15.528173+00:00",
+      "peak_vram_bytes": 32183808,
+      "started_at": "2026-09-04T10:41:12.307999+00:00",
+      "success": true,
+      "used_gpu": true
+    },
+    {
+      "command": "train --model core_style --stage pilot",
+      "elapsed_seconds": 48.11643990012817,
+      "finished_at": "2026-09-04T10:42:17.242968+00:00",
+      "peak_vram_bytes": 23226368,
+      "started_at": "2026-09-04T10:41:29.115932+00:00",
+      "success": true,
+      "used_gpu": true
+    },
+    {
+      "command": "train --model tsa_style --stage pilot",
+      "elapsed_seconds": 74.40825580013916,
+      "finished_at": "2026-09-04T10:44:15.670404+00:00",
+      "peak_vram_bytes": 36147712,
+      "started_at": "2026-09-04T10:43:01.251978+00:00",
+      "success": true,
+      "used_gpu": true
+    },
+    {
+      "command": "train --model all --stage final",
+      "elapsed_seconds": 11.388639699900523,
+      "finished_at": "2026-09-04T10:45:47.082190+00:00",
+      "peak_vram_bytes": 36797440,
+      "started_at": "2026-09-04T10:45:35.683003+00:00",
+      "success": true,
+      "used_gpu": true
+    }
+  ]
+}
+

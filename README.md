@@ -1,7 +1,7 @@
 # TrustDive
 
-TrustDive is the code and result archive for *Exact Reference-Conditioned Phase
-Attribution for Transparent Diving Assessment*. The method starts from a
+TrustDive is the code and result archive for *Reference-Adaptive Diving
+Performance Assessment with Exact Counterfactual Phase Evidence*. The method starts from a
 deterministic RICA² score, applies a bounded calibration in its frozen latent
 space, and uses same-action examples from other competition events to define a
 fixed comparison neighborhood. Within that neighborhood, it separates the
@@ -14,6 +14,12 @@ videos are not included in this repository.
 
 On the 749-video FineDiving test split, the prespecified TrustDive model reduced
 MAE from 6.17 to 5.72 points and changed Spearman's rho from 0.8278 to 0.8342.
+Under a shared frozen-feature comparison, TrustDive had the lowest overall MAE
+(5.7246) and high-disagreement MAE (7.4950) among deterministic RICA², a
+CoRe-style adapter, a TSA-style adapter, and TrustDive. The TSA-style adapter
+had the highest rho (0.8380); TrustDive retained 99.55% of that value. These are
+complementary metric strengths, not evidence of uniform or statistically
+significant superiority over the matched-feature baselines.
 An additional post-freeze component audit showed that most of the score improvement came
 from latent calibration; reference statistics added only a small ranking and
 RMSE benefit beyond the latent-only model. For the 735 videos with enough legal
@@ -29,6 +35,8 @@ videos.
 - `02_CODE/tests/`: unit and reproducibility tests.
 - `03_RESULTS/V7_RISK_TASK/`: frozen predictions and statistical summaries used
   in the paper.
+- `03_RESULTS/V10_FEATURE_BASELINES/`: matched-feature baseline selection,
+  three-seed summaries, paired bootstrap comparisons, and the v10 result report.
 - `03_RESULTS/MANUSCRIPT_REVISION_2026_09_03/`: component, parser, oracle,
   interaction, reference-count, and runtime audits added during manuscript
   review.
@@ -91,8 +99,25 @@ Run the paper-specific tests with:
 python -m pytest \
   02_CODE/tests/test_v7_risk_task.py \
   02_CODE/tests/test_manuscript_revision.py \
-  02_CODE/tests/test_manuscript_figures.py -q
+  02_CODE/tests/test_manuscript_figures.py \
+  02_CODE/tests/test_v10_feature_baselines.py -q
 ```
+
+The v10 matched-feature comparison can be audited and regenerated with:
+
+```bash
+python -m trustdive.feature_baselines audit
+python -m trustdive.feature_baselines smoke-test
+python -m trustdive.feature_baselines train --model core_style --stage pilot
+python -m trustdive.feature_baselines train --model tsa_style --stage pilot
+python -m trustdive.feature_baselines freeze-contract
+python -m trustdive.feature_baselines train --model all --stage final
+python -m trustdive.feature_baselines analyze
+```
+
+The CoRe-style and TSA-style models are literature-grounded implementations
+under TrustDive's frozen-feature protocol. They are not official end-to-end
+reproductions of the cited methods.
 
 The bounded post-freeze diagnostic analyses can be regenerated with the command below once
 the frozen RICA² latent and temporal-sequence caches have been produced by the

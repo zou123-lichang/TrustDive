@@ -53,8 +53,9 @@ def test_figure_contract_and_frozen_counts() -> None:
     contracts = json.loads((OUTPUT_ROOT / "figure_contracts.json").read_text(encoding="utf-8"))
     audit = json.loads((OUTPUT_ROOT / "frozen_input_audit.json").read_text(encoding="utf-8"))
     assert contracts["backend"] == "Python/matplotlib exclusively"
-    assert contracts["Figure2"]["size_mm"] == [180, 128]
-    assert contracts["Figure3"]["size_mm"] == [180, 140]
+    assert contracts["Figure2"]["size_mm"] == [180, 105]
+    assert contracts["Figure3"]["size_mm"] == [180, 150]
+    assert contracts["Figure4"]["size_mm"] == [180, 170]
     assert audit["status"] == "PASS"
     assert all(audit["checks"].values())
 
@@ -65,3 +66,21 @@ def test_explicit_figure_text_is_not_smaller_than_eight_points() -> None:
     label_sizes = [float(value) for value in re.findall(r"labelsize\s*=\s*([0-9]+(?:\.[0-9]+)?)", source)]
     assert explicit_sizes
     assert min(explicit_sizes + label_sizes) >= 8.0
+
+
+def test_figure2_v10_metrics_and_paired_effects_are_complete() -> None:
+    metrics = pd.read_csv(SOURCE_ROOT / "Figure2_model_metrics.csv")
+    effects = pd.read_csv(SOURCE_ROOT / "Figure2_paired_mae_differences.csv")
+
+    assert metrics.model.tolist() == [
+        "Deterministic RICA²",
+        "RICA² + CoRe-style",
+        "RICA² + TSA-style",
+        "TrustDive",
+    ]
+    assert metrics.loc[metrics.model == "TrustDive", "mae"].item() == 5.724603291869024
+    assert metrics.loc[metrics.model == "RICA² + TSA-style", "spearman"].item() == 0.838039934309453
+    assert set(effects.baseline) == {"Deterministic RICA²", "RICA² + CoRe-style", "RICA² + TSA-style"}
+    assert (effects.subset == "overall").all()
+
+
